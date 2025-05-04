@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        /* Sidebar styles */
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: #1e2a3a;
+            color: #ecf0f1;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s;
+            z-index: 1000;
+            min-height: calc(100vh - 56px);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .components {
+            padding: 20px 0;
+        }
+        
+        .sidebar-heading {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.5);
+            padding: 16px 20px 8px;
+            margin-top: 10px;
+            margin-bottom: 0;
+        }
+        
+        .sidebar ul li a {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-radius: 8px;
+            margin: 2px 10px;
+        }
+        
+        .sidebar ul li a:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .sidebar ul li a.active {
+            color: #fff;
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        }
+        
+        .sidebar ul li a i {
+            width: 24px;
+            margin-right: 10px;
+            text-align: center;
+        }
+        
+        /* Content styles */
+        .content {
+            width: 100%;
+            transition: all 0.3s;
+        }
+        
+        .content-with-sidebar {
+            width: calc(100% - 280px);
+            margin-left: 280px;
+        }
+        
+        .navbar {
+            background: #fff;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+        }
+        
+        /* Card styles */
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+            margin-bottom: 20px;
+        }
+        
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            background-color: #fff;
+            padding: 15px 20px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -280px;
+            }
+            
+            .content-with-sidebar {
+                width: 100%;
+                margin-left: 0;
+            }
+            
+            .sidebar.active {
+                margin-left: 0;
+            }
+            
+            .content-with-sidebar.active {
+                margin-left: 280px;
+                width: calc(100% - 280px);
+            }
+        }
+        
+        .stat-icon {
+            font-size: 1.5rem;
+        }
+        
+        /* Notification styles */
+        .unread-notification {
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+        
+        .notification-item {
+            cursor: pointer;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .notification-item:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+        
+        .notification-dropdown {
+            min-width: 300px;
+        }
+        
+        .smaller {
+            font-size: 0.75rem;
+        }
+        
+        .dropdown-header.p-0 {
+            margin: 0;
+            padding: 0;
+            display: inline-block;
+            font-size: 0.9rem;
+            color: #212529;
+        }
+        
+        /* Notification Bell Styling */
+        .notification-bell-btn {
+            background: transparent;
+            border: none;
+            transition: all 0.3s ease;
+            padding: 8px 12px;
+            border-radius: 50%;
+        }
+        
+        .notification-bell-btn:hover {
+            background-color: rgba(13, 110, 253, 0.1);
+            transform: scale(1.05);
+        }
+        
+        .notification-bell-icon {
+            font-size: 1.2rem;
+            color: #495057;
+            transition: color 0.3s ease;
+        }
+        
+        .notification-bell-btn:hover .notification-bell-icon {
+            color: #0d6efd;
+        }
+        
+        /* Pulse animation for notification badge */
+        .pulse-animation {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: translate(50%, -50%) scale(0.95);
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+            }
+            
+            70% {
+                transform: translate(50%, -50%) scale(1);
+                box-shadow: 0 0 0 6px rgba(220, 53, 69, 0);
+            }
+            
+            100% {
+                transform: translate(50%, -50%) scale(0.95);
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+            }
+        }
+        
+        /* Notification dropdown styling */
+        .notification-dropdown {
+            border-radius: 0.5rem;
+        }
+        
+        .notification-item {
+            transition: background-color 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .notification-item:hover {
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+        
+        .unread-notification {
+            border-left: 3px solid #0d6efd;
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+    </style>
+    {% block additional_styles %}{% endblock %}
+</head>
+<body>
+    <div class="dashboard-container">
+        {% if show_sidebar|default(true) %}
+        <!-- Sidebar -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('user_dashboard') }}" class="d-flex align-items-center mb-3 text-decoration-none">
+                    <i class="fas fa-utensils text-white me-2" style="font-size: 1.5rem;"></i>
+                    <h5 class="text-white mb-0">Recipe Feed</h5>
+                </a>
+            </div>
+            
+            <div class="components">
+                <p class="sidebar-heading">MENU</p>
+                <ul class="list-unstyled">
+                    <li>
+                        <a href="{{ url_for('user_dashboard') }}" {% if request.endpoint == 'user_dashboard' %}class="active"{% endif %}>
+                            <i class="fas fa-home"></i> Home Feed
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('discover') }}" {% if request.endpoint == 'discover' %}class="active"{% endif %}>
+                            <i class="fas fa-compass"></i> Discover
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('saved_recipes') }}" {% if request.endpoint == 'saved_recipes' %}class="active"{% endif %}>
+                            <i class="fas fa-bookmark"></i> Saved Recipes
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('following') }}" {% if request.endpoint == 'following' %}class="active"{% endif %}>
+                            <i class="fas fa-user-friends"></i> Following
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#createRecipeModal" data-bs-toggle="modal">
+                            <i class="fas fa-plus-circle"></i> Create Recipe
+                        </a>
+                    </li>
+                </ul>
+                
+                <p class="sidebar-heading">COLLECTIONS</p>
+                <ul class="list-unstyled">
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-hamburger"></i> Quick Meals
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-leaf"></i> Vegetarian
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-birthday-cake"></i> Desserts
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-plus"></i> Create Collection
+                        </a>
+                    </li>
+                </ul>
+                
+                <p class="sidebar-heading">ACCOUNT</p>
+                <ul class="list-unstyled">
+                    <li>
+                        <a href="{{ url_for('user_profile') }}" {% if request.endpoint == 'user_profile' %}class="active"{% endif %}>
+                            <i class="fas fa-user"></i> Profile
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('user_settings') }}" {% if request.endpoint == 'user_settings' %}class="active"{% endif %}>
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('logout') }}" class="text-danger">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        {% endif %}
+        
+        <!-- Page Content -->
+        <div class="content {% if show_sidebar|default(true) %}content-with-sidebar{% endif %}">
+            <nav class="navbar navbar-expand-lg navbar-light border-bottom">
+                <div class="container-fluid">
+                    {% if show_sidebar|default(true) %}
+                    <button type="button" id="sidebarCollapse" class="btn btn-light d-md-none">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    {% else %}
+                    <a href="{{ url_for('user_dashboard') }}" class="btn btn-light">
+                        <i class="fas fa-arrow-left me-1"></i> Dashboard
+                    </a>
+                    {% endif %}
+                    
+                    <div class="d-flex ms-auto">
+                        <div class="input-group me-3">
+                            <input type="text" class="form-control" placeholder="Search recipes...">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="dropdown">
+                            <button class="btn position-relative notification-bell-btn" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="notification-bell-icon">
+                                <i class="fas fa-bell"></i>
+                                    <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger pulse-animation" style="display: none;">
+                                        0
+                                    </span>
+                                </span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end notification-dropdown shadow-lg border-0" aria-labelledby="notificationsDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
+                                <li class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                                    <h6 class="dropdown-header p-0 m-0 fw-bold">Notifications</h6>
+                                    <button id="markAllReadBtn" class="btn btn-sm text-primary p-0" style="font-size: 0.8rem;"><i class="fas fa-check-double me-1"></i>Mark all read</button>
+                                </li>
+                                <div id="notificationsLoader" class="text-center p-3">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                                <div id="notificationsContent">
+                                    <!-- Notifications will be loaded here -->
+                                </div>
+                            </ul>
+                        </div>
+                        
+                        <div class="dropdown ms-3">
+                            <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                                {% if current_user and current_user.profile_pic %}
+                                <img src="{{ url_for('static', filename=current_user.profile_pic) }}" class="rounded-circle" width="32" height="32" alt="Profile">
+                                {% else %}
+                                <img src="{{ url_for('static', filename='images/default-avatar.svg') }}" class="rounded-circle" width="32" height="32" alt="Profile">
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <li><a class="dropdown-item" href="{{ url_for('user_profile') }}">Profile</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('user_settings') }}">Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            
+            <div class="container-fluid p-4">
+                {% include 'includes/messages.html' %}
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Create Recipe Modal -->
+    <div class="modal fade" id="createRecipeModal" tabindex="-1" aria-labelledby="createRecipeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createRecipeModalLabel">Create New Recipe</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url_for('create_recipe') }}" method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Recipe Title</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="prep_time" class="form-label">Prep Time (min)</label>
+                                <input type="number" class="form-control" id="prep_time" name="prep_time">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="cook_time" class="form-label">Cook Time (min)</label>
+                                <input type="number" class="form-control" id="cook_time" name="cook_time">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="servings" class="form-label">Servings</label>
+                                <input type="number" class="form-control" id="servings" name="servings">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ingredients" class="form-label">Ingredients</label>
+                            <textarea class="form-control" id="ingredients" name="ingredients" rows="5" required placeholder="Enter each ingredient on a new line"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="instructions" class="form-label">Instructions</label>
+                            <textarea class="form-control" id="instructions" name="instructions" rows="5" required placeholder="Enter each step on a new line"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="photo" class="form-label">Recipe Photo</label>
+                            <input class="form-control" type="file" id="photo" name="photo">
+                        </div>
+                        <div class="mb-3">
+                            <label for="calories" class="form-label">Calories (optional)</label>
+                            <input type="number" class="form-control" id="calories" name="calories">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Privacy</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="privacy" id="privacy-public" value="public" checked>
+                                <label class="form-check-label" for="privacy-public">
+                                    Public - Anyone can see this recipe
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="privacy" id="privacy-friends" value="friends">
+                                <label class="form-check-label" for="privacy-friends">
+                                    Friends Only - Only people who follow you can see this recipe
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="privacy" id="privacy-private" value="private">
+                                <label class="form-check-label" for="privacy-private">
+                                    Private - Only you can see this recipe
+                                </label>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Create Recipe</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle sidebar on mobile
+            document.getElementById('sidebarCollapse').addEventListener('click', function() {
+                    document.getElementById('sidebar').classList.toggle('active');
+                    document.querySelector('.content').classList.toggle('active');
+                });
+        });
+    </script>
+    
+    {% block scripts %}
+        <!-- Notifications Handling -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Fetch notifications when dropdown is opened
+                const notificationsDropdown = document.getElementById('notificationsDropdown');
+                const notificationBadge = document.getElementById('notificationBadge');
+                const notificationsLoader = document.getElementById('notificationsLoader');
+                const notificationsContent = document.getElementById('notificationsContent');
+                
+                // Function to load notifications
+                function loadNotifications() {
+                    // Show loader
+                    notificationsLoader.style.display = 'block';
+                    notificationsContent.innerHTML = '';
+                    
+                    fetch('/user/notifications')
+                        .then(response => response.json())
+                        .then(data => {
+                            // Hide loader
+                            notificationsLoader.style.display = 'none';
+                            
+                            if (data.success) {
+                                // Update notification badge based on unread count or all_read flag
+                                updateNotificationBadge(data.unread_count, data.all_read);
+                                
+                                // Display notifications
+                                if (data.notifications.length > 0) {
+                                    let notificationsHtml = '';
+                                    
+                                    data.notifications.forEach(notification => {
+                                        let icon = 'bell';
+                                        let iconColor = 'secondary';
+                                        
+                                        if (notification.type === 'recipe_like') {
+                                            icon = 'heart';
+                                            iconColor = 'primary';
+                                        } else if (notification.type === 'recipe_comment') {
+                                            icon = 'comment';
+                                            iconColor = 'warning';
+                                        } else if (notification.type === 'new_follower') {
+                                            icon = 'user-plus';
+                                            iconColor = 'info';
+                                        }
+                                        
+                                        // Consider server-side is_read and client-side data
+                                        const isRead = notification.is_read || data.all_read;
+                                        
+                                        notificationsHtml += `
+                                            <li class="dropdown-item notification-item ${!isRead ? 'unread-notification' : ''}" 
+                                                data-notification-id="${notification.id}">
+                                                <div class="d-flex align-items-start">
+                                                    <div class="me-2">
+                                                        <span class="notification-icon rounded-circle d-inline-flex align-items-center justify-content-center bg-${iconColor} bg-opacity-${isRead ? '25' : '100'}" 
+                                                            style="width: 30px; height: 30px;">
+                                                            <i class="fas fa-${icon} ${isRead ? 'text-'+iconColor : 'text-white'} small"></i>
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <div class="notification-text small">${notification.message}</div>
+                                                        <div class="text-muted smaller">${notification.relative_time}</div>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        `;
+                                    });
+                                    
+                                    notificationsContent.innerHTML = notificationsHtml;
+                                    
+                                    // Add event listeners to mark notifications as read when clicked
+                                    document.querySelectorAll('.notification-item').forEach(item => {
+                                        item.addEventListener('click', function(e) {
+                                            const notificationId = this.getAttribute('data-notification-id');
+                                            markNotificationAsRead(notificationId);
+                                        });
+                                    });
+                                } else {
+                                    notificationsContent.innerHTML = '<li class="dropdown-item text-center text-muted">No notifications</li>';
+                                }
+                            } else {
+                                console.error(data.error);
+                                notificationsContent.innerHTML = '<li class="dropdown-item text-center text-danger">Failed to load notifications</li>';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            notificationsLoader.style.display = 'none';
+                            notificationsContent.innerHTML = '<li class="dropdown-item text-center text-danger">Failed to load notifications</li>';
+                        });
+                }
+                
+                // Helper function to update the notification badge
+                function updateNotificationBadge(count, allRead = false) {
+                    if (allRead || count <= 0) {
+                        notificationBadge.style.display = 'none';
+                    } else {
+                        notificationBadge.textContent = count;
+                        notificationBadge.style.display = 'block';
+                    }
+                }
+                
+                // Function to mark a notification as read
+                function markNotificationAsRead(notificationId) {
+                    fetch('/user/notifications/mark-read', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            notification_id: notificationId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update notification badge
+                            updateNotificationBadge(data.unread_count, data.all_read);
+                            
+                            // Update the notification item's appearance
+                            const notificationItem = document.querySelector(`.notification-item[data-notification-id="${notificationId}"]`);
+                            if (notificationItem) {
+                                notificationItem.classList.remove('unread-notification');
+                                
+                                // Update icon style
+                                const icon = notificationItem.querySelector('.notification-icon');
+                                if (icon) {
+                                    const iconClass = icon.className;
+                                    icon.className = iconClass.replace('bg-opacity-100', 'bg-opacity-25');
+                                    
+                                    const iconElement = icon.querySelector('i');
+                                    if (iconElement) {
+                                        iconElement.className = iconElement.className.replace('text-white', 'text-' + iconClass.match(/bg-([a-z]+)/)[1]);
+                                    }
+                                }
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                }
+                
+                // Load notifications on dropdown open
+                notificationsDropdown.addEventListener('click', function() {
+                    loadNotifications();
+                });
+                
+                // Mark all notifications as read
+                document.getElementById('markAllReadBtn').addEventListener('click', function(e) {
+                    e.stopPropagation(); // Prevent event from bubbling up to dropdown toggle
+                    
+                    // Hide the notification badge immediately for visual feedback
+                    notificationBadge.style.display = 'none';
+                    
+                    fetch('/user/notifications/mark-read', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            notification_id: null,
+                            mark_all: true
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Visually update all notifications to appear as read
+                            document.querySelectorAll('.notification-item').forEach(item => {
+                                item.classList.remove('unread-notification');
+                                
+                                // Update icon styles
+                                const icon = item.querySelector('.notification-icon');
+                                if (icon) {
+                                    const iconClass = icon.className;
+                                    if (iconClass.includes('bg-opacity-100')) {
+                                        icon.className = iconClass.replace('bg-opacity-100', 'bg-opacity-25');
+                                        
+                                        const iconElement = icon.querySelector('i');
+                                        if (iconElement && iconElement.className.includes('text-white')) {
+                                            const bgColor = iconClass.match(/bg-([a-z]+)/);
+                                            if (bgColor && bgColor[1]) {
+                                                iconElement.className = iconElement.className.replace('text-white', 'text-' + bgColor[1]);
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                });
+                
+                // Check for notifications when page loads
+                fetch('/user/notifications')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            updateNotificationBadge(data.unread_count, data.all_read);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            });
+        </script>
+        
+        <!-- Custom JS for the specific page -->
+        {% block page_scripts %}{% endblock %}
+    {% endblock %}
+</body>
+</html> 

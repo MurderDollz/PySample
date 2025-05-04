@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        /* Sidebar styles */
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: #1e2a3a;
+            color: #ecf0f1;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .components {
+            padding: 20px 0;
+        }
+        
+        .sidebar-heading {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.5);
+            padding: 16px 20px 8px;
+            margin-top: 10px;
+            margin-bottom: 0;
+        }
+        
+        .sidebar ul li a {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-radius: 8px;
+            margin: 2px 10px;
+        }
+        
+        .sidebar ul li a:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .sidebar ul li a.active {
+            color: #fff;
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        }
+        
+        .sidebar ul li a i {
+            width: 24px;
+            margin-right: 10px;
+            text-align: center;
+        }
+        
+        /* Content styles */
+        .content {
+            width: calc(100% - 280px);
+            margin-left: 280px;
+            transition: all 0.3s;
+        }
+        
+        .navbar {
+            background: #fff;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+        }
+        
+        /* Card styles */
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+            margin-bottom: 20px;
+        }
+        
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            background-color: #fff;
+            padding: 15px 20px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -280px;
+            }
+            
+            .content {
+                width: 100%;
+                margin-left: 0;
+            }
+            
+            .sidebar.active {
+                margin-left: 0;
+            }
+            
+            .content.active {
+                margin-left: 280px;
+                width: calc(100% - 280px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('user_dashboard') }}" class="d-flex align-items-center mb-3 text-decoration-none">
+                    <i class="fas fa-utensils text-white me-2" style="font-size: 1.5rem;"></i>
+                    <h5 class="text-white mb-0">Recipe Feed</h5>
+                </a>
+            </div>
+            
+            <div class="components">
+                <p class="sidebar-heading">MENU</p>
+                <ul class="list-unstyled">
+                    <li>
+                        <a href="{{ url_for('user_dashboard') }}">
+                            <i class="fas fa-home"></i> Home Feed
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-compass"></i> Discover
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-bookmark"></i> Saved Recipes
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-user-friends"></i> Following
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#createRecipeModal" data-bs-toggle="modal">
+                            <i class="fas fa-plus-circle"></i> Create Recipe
+                        </a>
+                    </li>
+                </ul>
+                
+                <p class="sidebar-heading">COLLECTIONS</p>
+                <ul class="list-unstyled">
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-hamburger"></i> Quick Meals
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-leaf"></i> Vegetarian
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-birthday-cake"></i> Desserts
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-plus"></i> Create Collection
+                        </a>
+                    </li>
+                </ul>
+                
+                <p class="sidebar-heading">ACCOUNT</p>
+                <ul class="list-unstyled">
+                    <li>
+                        <a href="{{ url_for('user_profile') }}">
+                            <i class="fas fa-user"></i> Profile
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('user_settings') }}" class="active">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('logout') }}" class="text-danger">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        
+        <!-- Page Content -->
+        <div class="content">
+            <nav class="navbar navbar-expand-lg navbar-light border-bottom">
+                <div class="container-fluid">
+                    <button type="button" id="sidebarCollapse" class="btn btn-light d-md-none">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    
+                    <div class="d-flex ms-auto">
+                        <div class="input-group me-3">
+                            <input type="text" class="form-control" placeholder="Search recipes...">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="dropdown">
+                            <button class="btn btn-light position-relative" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-bell"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    3
+                                </span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationsDropdown">
+                                <li><h6 class="dropdown-header">Notifications</h6></li>
+                                <li><a class="dropdown-item" href="#">Someone liked your recipe</a></li>
+                                <li><a class="dropdown-item" href="#">New comment on your post</a></li>
+                                <li><a class="dropdown-item" href="#">New follower</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-center" href="#">View all</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            
+            <!-- Flash Messages -->
+            <div class="container-fluid mt-3">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+            
+            <!-- Main Content -->
+            <div class="container-fluid py-4">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Account Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <form action="{{ url_for('update_profile') }}" method="POST">
+                                    <div class="row mb-4">
+                                        <div class="col-md-6">
+                                            <label for="email" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email if current_user else '' }}" readonly>
+                                            <div class="form-text">Email cannot be changed.</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="phone" class="form-label">Phone</label>
+                                            <input type="tel" class="form-control" id="phone" name="phone" value="{{ current_user.phone if current_user and current_user.phone else '' }}">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="bio" class="form-label">Bio</label>
+                                        <textarea class="form-control" id="bio" name="bio" rows="3">{{ current_user.bio if current_user and current_user.bio else '' }}</textarea>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="location" class="form-label">Location</label>
+                                        <input type="text" class="form-control" id="location" name="location" value="{{ current_user.location if current_user and current_user.location else '' }}">
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="birthday" class="form-label">Birthday</label>
+                                        <input type="date" class="form-control" id="birthday" name="birthday" value="{{ current_user.birthday.strftime('%Y-%m-%d') if current_user and current_user.birthday else '' }}">
+                                    </div>
+                                    
+                                    <hr class="my-4">
+                                    
+                                    <h5 class="mb-3">Profile Picture</h5>
+                                    <div class="mb-4">
+                                        <div class="d-flex align-items-center">
+                                            {% if current_user and current_user.profile_pic %}
+                                            <img src="{{ url_for('static', filename=current_user.profile_pic) }}" 
+                                                 class="rounded-circle me-3" alt="Profile Picture" 
+                                                 style="width: 100px; height: 100px; object-fit: cover;">
+                                            {% else %}
+                                            <img src="{{ url_for('static', filename='images/default-avatar.svg') }}" 
+                                                 class="rounded-circle me-3" alt="Default Profile" 
+                                                 style="width: 100px; height: 100px; object-fit: cover;">
+                                            {% endif %}
+                                            <div>
+                                                <div class="mb-3">
+                                                    <form action="{{ url_for('update_profile_picture') }}" method="POST" enctype="multipart/form-data">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <label for="profile_pic" class="form-label">Change Profile Picture</label>
+                                                        <input class="form-control" type="file" id="profile_pic" name="profile_pic" accept="image/png, image/jpeg, image/gif">
+                                                        <div class="form-text">Allowed file types: PNG, JPG, GIF. Maximum size: 5MB.</div>
+                                                        <button type="submit" class="btn btn-primary mt-2">Upload Photo</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <hr class="my-4">
+                                    
+                                    <h5 class="mb-3">Password</h5>
+                                    <div class="row mb-4">
+                                        <div class="col-md-4">
+                                            <label for="currentPassword" class="form-label">Current Password</label>
+                                            <input type="password" class="form-control" id="currentPassword" name="current_password">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="newPassword" class="form-label">New Password</label>
+                                            <input type="password" class="form-control" id="newPassword" name="new_password">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                                            <input type="password" class="form-control" id="confirmPassword" name="confirm_password">
+                                        </div>
+                                    </div>
+                                    
+                                    <hr class="my-4">
+                                    
+                                    <h5 class="mb-3">Notification Preferences</h5>
+                                    <div class="mb-4">
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" id="emailNotifications" name="email_notifications" checked>
+                                            <label class="form-check-label" for="emailNotifications">Email Notifications</label>
+                                        </div>
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" id="likeNotifications" name="like_notifications" checked>
+                                            <label class="form-check-label" for="likeNotifications">Likes on your recipes</label>
+                                        </div>
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" id="commentNotifications" name="comment_notifications" checked>
+                                            <label class="form-check-label" for="commentNotifications">Comments on your recipes</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="followerNotifications" name="follower_notifications" checked>
+                                            <label class="form-check-label" for="followerNotifications">New followers</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                        <button class="btn btn-primary" type="submit">Save Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="mb-0">Danger Zone</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Once you delete your account, there is no going back. Please be certain.</p>
+                                <button class="btn btn-outline-danger">Delete Account</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle sidebar on mobile
+            document.getElementById('sidebarCollapse').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('active');
+                document.querySelector('.content').classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+</html> 

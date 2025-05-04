@@ -1,0 +1,164 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Admin Settings</h1>
+    </div>
+
+    <!-- Display Success Message -->
+    {% if success_message %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i> {{ success_message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <!-- Settings Content -->
+    <div class="row">
+        <!-- Admin Profile Card -->
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <div class="card dashboard-card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Admin Profile</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar-container mb-3">
+                            <i class="fas fa-user-circle fa-7x text-primary"></i>
+                        </div>
+                        <h5 class="mb-1">{{ admin.username }}</h5>
+                        <span class="badge bg-success rounded-pill px-3 py-2">Administrator</span>
+                        <p class="text-muted mt-3">
+                            <i class="fas fa-calendar-alt me-2"></i> Member since {{ admin.created_at.strftime('%b %d, %Y') }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Password Change Card -->
+        <div class="col-xl-8 col-lg-7 mb-4">
+            <div class="card dashboard-card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Change Password</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin_settings') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Current Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control" id="current_password" name="current_password" placeholder="Enter your current password" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">New Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                <input type="password" class="form-control" id="new_password" name="new_password" placeholder="Enter new password" required>
+                            </div>
+                            <small class="text-muted">Password should be at least 8 characters long and include numbers and special characters.</small>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="confirm_password" class="form-label">Confirm New Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-check-double"></i></span>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm new password" required>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i> Update Password
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Stats Row -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card dashboard-card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">System Statistics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-4 mb-md-0">
+                            <div class="py-4 rounded bg-light">
+                                <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                                <h3 class="h4 mb-2">{{ total_users }}</h3>
+                                <p class="text-muted mb-0">Total Users</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-4 mb-md-0">
+                            <div class="py-4 rounded bg-light">
+                                <i class="fas fa-utensils fa-3x text-success mb-3"></i>
+                                <h3 class="h4 mb-2">{{ total_recipes }}</h3>
+                                <p class="text-muted mb-0">Total Recipes</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-4 mb-md-0">
+                            <div class="py-4 rounded bg-light">
+                                <i class="fas fa-heart fa-3x text-danger mb-3"></i>
+                                <h3 class="h4 mb-2">{{ total_likes }}</h3>
+                                <p class="text-muted mb-0">Total Likes</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="py-4 rounded bg-light">
+                                <i class="fas fa-comments fa-3x text-info mb-3"></i>
+                                <h3 class="h4 mb-2">{{ total_comments }}</h3>
+                                <p class="text-muted mb-0">Total Comments</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Password validation
+        const newPasswordInput = document.getElementById('new_password');
+        const confirmPasswordInput = document.getElementById('confirm_password');
+        
+        confirmPasswordInput.addEventListener('input', function() {
+            if (newPasswordInput.value !== confirmPasswordInput.value) {
+                confirmPasswordInput.setCustomValidity("Passwords don't match");
+            } else {
+                confirmPasswordInput.setCustomValidity('');
+            }
+        });
+        
+        newPasswordInput.addEventListener('input', function() {
+            if (newPasswordInput.value.length < 8) {
+                newPasswordInput.setCustomValidity("Password must be at least 8 characters long");
+            } else {
+                newPasswordInput.setCustomValidity('');
+                if (confirmPasswordInput.value) {
+                    if (newPasswordInput.value !== confirmPasswordInput.value) {
+                        confirmPasswordInput.setCustomValidity("Passwords don't match");
+                    } else {
+                        confirmPasswordInput.setCustomValidity('');
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        /* Sidebar styles */
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: #1e2a3a;
+            color: #ecf0f1;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .components {
+            padding: 20px 0;
+        }
+        
+        .sidebar-heading {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.5);
+            padding: 16px 20px 8px;
+            margin-top: 10px;
+            margin-bottom: 0;
+        }
+        
+        .sidebar ul li a {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-radius: 8px;
+            margin: 2px 10px;
+        }
+        
+        .sidebar ul li a:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .sidebar ul li a.active {
+            color: #fff;
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        }
+        
+        .sidebar ul li a i {
+            width: 24px;
+            margin-right: 10px;
+            text-align: center;
+        }
+        
+        /* Content styles */
+        .content {
+            width: calc(100% - 280px);
+            margin-left: 280px;
+            transition: all 0.3s;
+        }
+        
+        .navbar {
+            background: #fff;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -280px;
+            }
+            
+            .content {
+                width: 100%;
+                margin-left: 0;
+            }
+            
+            .sidebar.active {
+                margin-left: 0;
+            }
+            
+            .content.active {
+                margin-left: 280px;
+                width: calc(100% - 280px);
+            }
+        }
+        
+        /* Timeline styles */
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-left: 50px;
+            margin-bottom: 30px;
+        }
+        
+        .timeline-marker {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('user_dashboard') }}" class="d-flex align-items-center mb-3 text-decoration-none">
+                    <i class="fas fa-utensils text-white me-2" style="font-size: 1.5rem;"></i>
+                    <h5 class="text-white mb-0">Recipe Feed</h5>
+                </a>
+            </div>
+            
+            <div class="components">
+                <p class="sidebar-heading">MENU</p>
+                <ul class="list-unstyled">
+                    <li>
+                        <a href="{{ url_for('user_dashboard') }}">
+                            <i class="fas fa-home"></i> Home Feed
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-compass"></i> Discover
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-bookmark"></i> Saved Recipes
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-user-friends"></i> Following
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#createRecipeModal" data-bs-toggle="modal">
+                            <i class="fas fa-plus-circle"></i> Create Recipe
+                        </a>
+                    </li>
+                </ul>
+                
+                <p class="sidebar-heading">COLLECTIONS</p>
+                <ul class="list-unstyled">
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-hamburger"></i> Quick Meals
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-leaf"></i> Vegetarian
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-birthday-cake"></i> Desserts
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-plus"></i> Create Collection
+                        </a>
+                    </li>
+                </ul>
+                
+                <p class="sidebar-heading">ACCOUNT</p>
+                <ul class="list-unstyled">
+                    <li>
+                        <a href="{{ url_for('user_profile') }}" class="active">
+                            <i class="fas fa-user"></i> Profile
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('user_settings') }}">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('logout') }}" class="text-danger">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        
+        <!-- Page Content -->
+        <div class="content">
+            <nav class="navbar navbar-expand-lg navbar-light border-bottom">
+                <div class="container-fluid">
+                    <button type="button" id="sidebarCollapse" class="btn btn-light d-md-none">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    
+                    <div class="d-flex ms-auto">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Search recipes...">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            
+            <!-- Flash Messages -->
+            <div class="container-fluid mt-3">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+            
+            <!-- Main Content -->
+            <div class="container-fluid py-4">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 text-center">
+                                        <div class="profile-img-container mb-4">
+                                            {% if current_user and current_user.profile_pic %}
+                                            <img src="{{ url_for('static', filename=current_user.profile_pic) }}" 
+                                                 class="rounded-circle img-fluid profile-img" alt="{{ current_user.first_name }}'s profile picture"
+                                                 style="width: 200px; height: 200px; object-fit: cover;">
+                                            {% else %}
+                                            <img src="{{ url_for('static', filename='images/default-avatar.svg') }}" 
+                                                 class="rounded-circle img-fluid profile-img" alt="Default profile picture"
+                                                 style="width: 200px; height: 200px; object-fit: cover;">
+                                            {% endif %}
+                                        </div>
+                                        <div class="profile-actions">
+                                            <button class="btn btn-primary btn-sm mb-2 w-100" data-bs-toggle="modal" data-bs-target="#changePhotoModal">
+                                                <i class="fas fa-camera me-2"></i> Change Photo
+                                            </button>
+                                            <button class="btn btn-outline-primary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                                                <i class="fas fa-edit me-2"></i> Edit Profile
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="user-details mb-4">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <h6 class="text-muted"><i class="fas fa-envelope me-2"></i> Email</h6>
+                                                        <p>{{ current_user.email if current_user else 'Not available' }}</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <h6 class="text-muted"><i class="fas fa-phone me-2"></i> Phone</h6>
+                                                        <p>{{ current_user.phone if current_user and current_user.phone else 'Not provided' }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <h6 class="text-muted"><i class="fas fa-birthday-cake me-2"></i> Birthday</h6>
+                                                        <p>{{ current_user.birthday.strftime('%B %d, %Y') if current_user and current_user.birthday else 'Not provided' }}</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <h6 class="text-muted"><i class="fas fa-calendar-alt me-2"></i> Member Since</h6>
+                                                        <p>{{ current_user.register_date.strftime('%B %Y') if current_user and current_user.register_date else 'Unknown' }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            {% if current_user and current_user.bio %}
+                                            <div class="mb-3">
+                                                <h6 class="text-muted"><i class="fas fa-info-circle me-2"></i> Bio</h6>
+                                                <p>{{ current_user.bio }}</p>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="profile-stats">
+                                            <div class="row text-center">
+                                                <div class="col-4">
+                                                    <div class="stat-item">
+                                                        <h4>42</h4>
+                                                        <span class="text-muted">Recipes</span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="stat-item">
+                                                        <h4>128</h4>
+                                                        <span class="text-muted">Followers</span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="stat-item">
+                                                        <h4>97</h4>
+                                                        <span class="text-muted">Following</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-12">
+                        <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="recipes-tab" data-bs-toggle="tab" href="#recipes" role="tab">My Recipes</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="saved-tab" data-bs-toggle="tab" href="#saved" role="tab">Saved Recipes</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="comments-tab" data-bs-toggle="tab" href="#comments" role="tab">Comments</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="activity-tab" data-bs-toggle="tab" href="#activity" role="tab">Activity</a>
+                            </li>
+                        </ul>
+                        
+                        <div class="tab-content" id="profileTabsContent">
+                            <div class="tab-pane fade show active" id="recipes" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i> You haven't created any recipes yet. 
+                                            <a href="#" class="alert-link">Create your first recipe</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="tab-pane fade" id="saved" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i> You haven't saved any recipes yet.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="tab-pane fade" id="comments" role="tabpanel">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Recent Comments</h5>
+                                        <div class="comment-list">
+                                            <div class="comment-item d-flex mb-3 pb-3 border-bottom">
+                                                <div class="comment-avatar me-3">
+                                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                        <i class="fas fa-user"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="comment-content">
+                                                    <div class="d-flex justify-content-between">
+                                                        <h6 class="mb-1">On <a href="#">Chocolate Chip Cookies</a></h6>
+                                                        <small class="text-muted">2 days ago</small>
+                                                    </div>
+                                                    <p class="mb-1">These cookies turned out amazing! I added a bit more vanilla extract and they were perfect.</p>
+                                                    <div class="comment-actions">
+                                                        <a href="#" class="text-muted me-3"><i class="fas fa-edit"></i> Edit</a>
+                                                        <a href="#" class="text-danger"><i class="fas fa-trash-alt"></i> Delete</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="tab-pane fade" id="activity" role="tabpanel">
+                                <div class="timeline">
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker bg-primary">
+                                            <i class="fas fa-heart"></i>
+                                        </div>
+                                        <div class="timeline-content">
+                                            <h5 class="mb-1">You liked a recipe</h5>
+                                            <p>Italian Pasta Carbonara</p>
+                                            <p class="text-muted">3 days ago</p>
+                                        </div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker bg-success">
+                                            <i class="fas fa-bookmark"></i>
+                                        </div>
+                                        <div class="timeline-content">
+                                            <h5 class="mb-1">You saved a recipe</h5>
+                                            <p>Classic Cheesecake</p>
+                                            <p class="text-muted">5 days ago</p>
+                                        </div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker bg-info">
+                                            <i class="fas fa-user-plus"></i>
+                                        </div>
+                                        <div class="timeline-content">
+                                            <h5 class="mb-1">Account created</h5>
+                                            <p class="text-muted">1 week ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form action="{{ url_for('update_profile') }}" method="POST">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email if current_user else '' }}" readonly>
+                                <div class="form-text">Email cannot be changed.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" value="{{ current_user.phone if current_user and current_user.phone else '' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" value="{{ current_user.location if current_user and current_user.location else '' }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="birthday" class="form-label">Birthday</label>
+                            <input type="date" class="form-control" id="birthday" name="birthday" value="{{ current_user.birthday.strftime('%Y-%m-%d') if current_user and current_user.birthday else '' }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">Bio</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="3">{{ current_user.bio if current_user and current_user.bio else '' }}</textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Change Photo Modal -->
+    <div class="modal fade" id="changePhotoModal" tabindex="-1" aria-labelledby="changePhotoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ url_for('update_profile_picture') }}" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="changePhotoModalLabel">Change Profile Photo</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="text-center mb-4">
+                            {% if current_user and current_user.profile_pic %}
+                            <img src="{{ url_for('static', filename=current_user.profile_pic) }}" 
+                                 class="rounded-circle img-fluid profile-img mb-3" 
+                                 alt="{{ current_user.first_name }}'s profile picture"
+                                 style="width: 150px; height: 150px; object-fit: cover;">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='images/default-avatar.svg') }}" 
+                                 class="rounded-circle img-fluid profile-img mb-3" 
+                                 alt="Default profile picture"
+                                 style="width: 150px; height: 150px; object-fit: cover;">
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="profile_pic" class="form-label">Upload New Photo</label>
+                            <input class="form-control" type="file" id="profile_pic" name="profile_pic" accept="image/png, image/jpeg, image/gif">
+                            <div class="form-text">Allowed file types: PNG, JPG, GIF. Maximum size: 5MB.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Upload Photo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle sidebar on mobile
+            document.getElementById('sidebarCollapse').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('active');
+                document.querySelector('.content').classList.toggle('active');
+            });
+            
+            // Profile tab navigation
+            const triggerTabList = [].slice.call(document.querySelectorAll('#profileTabs a'));
+            triggerTabList.forEach(function (triggerEl) {
+                const tabTrigger = new bootstrap.Tab(triggerEl);
+                triggerEl.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    tabTrigger.show();
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

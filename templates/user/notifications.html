@@ -1,0 +1,117 @@
+{% extends "user/user_layout.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">All Notifications</h5>
+            <button id="markAllReadBtn" class="btn btn-sm btn-outline-primary">Mark all as read</button>
+        </div>
+        <div class="card-body p-0">
+            <ul class="list-group list-group-flush notification-list">
+                {% if notifications %}
+                    {% for notification in notifications %}
+                        <li class="list-group-item p-3 {% if not notification.is_read %}unread-notification{% endif %}" data-notification-id="{{ notification.id }}">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    {% if notification.notification_type == 'recipe_like' %}
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center {% if not notification.is_read %}bg-primary{% else %}bg-light{% endif %}" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-heart {% if not notification.is_read %}text-white{% else %}text-primary{% endif %}"></i>
+                                        </div>
+                                    {% elif notification.notification_type == 'recipe_comment' %}
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center {% if not notification.is_read %}bg-warning{% else %}bg-light{% endif %}" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-comment {% if not notification.is_read %}text-white{% else %}text-warning{% endif %}"></i>
+                                        </div>
+                                    {% elif notification.notification_type == 'new_follower' %}
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center {% if not notification.is_read %}bg-info{% else %}bg-light{% endif %}" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-user-plus {% if not notification.is_read %}text-white{% else %}text-info{% endif %}"></i>
+                                        </div>
+                                    {% else %}
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center {% if not notification.is_read %}bg-secondary{% else %}bg-light{% endif %}" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-bell {% if not notification.is_read %}text-white{% else %}text-secondary{% endif %}"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <p class="mb-1">
+                                        {{ notification.message|safe }}
+                                    </p>
+                                    <small class="text-muted">{{ notification.relative_time }}</small>
+                                </div>
+                                {% if not notification.is_read %}
+                                    <button class="btn btn-sm btn-link mark-read-btn" data-notification-id="{{ notification.id }}">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="list-group-item p-4 text-center">
+                        <p class="mb-0 text-muted">You have no notifications</p>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mark individual notification as read
+        document.querySelectorAll('.mark-read-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const notificationId = this.getAttribute('data-notification-id');
+                markAsRead(notificationId);
+            });
+        });
+        
+        // Mark all notifications as read
+        document.getElementById('markAllReadBtn').addEventListener('click', function() {
+            markAsRead(null);
+        });
+        
+        // Click on notification to go to the related content
+        document.querySelectorAll('.notification-list li').forEach(notification => {
+            notification.addEventListener('click', function(e) {
+                // Don't trigger when clicking the mark as read button
+                if (!e.target.closest('.mark-read-btn')) {
+                    const notificationId = this.getAttribute('data-notification-id');
+                    // Mark as read before redirecting
+                    markAsRead(notificationId, true);
+                }
+            });
+        });
+        
+        // Function to mark notification(s) as read
+        function markAsRead(notificationId, dontRefresh = false) {
+            fetch('/user/notifications/mark-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    notification_id: notificationId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (!dontRefresh) {
+                        // Refresh the page to see changes
+                        window.location.reload();
+                    }
+                } else {
+                    console.error(data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    });
+</script>
+{% endblock %} 

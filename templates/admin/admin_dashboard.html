@@ -1,0 +1,425 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        <!-- Total Users Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card border-left-primary h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Users</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_users }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Recipes Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card border-left-success h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Recipes</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_recipes }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-utensils fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Today Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card border-left-info h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                New Users Today
+                            </div>
+                            <div class="row no-gutters align-items-center">
+                                <div class="col-auto">
+                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{ new_users_today }}</div>
+                                </div>
+                                <div class="col">
+                                    {% set progress_width = (new_users_today / total_users * 100) if total_users > 0 else 0 %}
+                                    <div class="progress progress-sm mr-2">
+                                        <div class="progress-bar bg-info" role="progressbar" 
+                                             data-width="{{ progress_width }}"
+                                             aria-valuenow="{{ progress_width }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comments Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card border-left-warning h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Total Comments</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_comments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-comments fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        <!-- Area Chart -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card dashboard-card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Recipe Uploads Overview</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                            aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Time Range:</div>
+                            <a class="dropdown-item" href="#">Last Week</a>
+                            <a class="dropdown-item" href="#">Last Month</a>
+                            <a class="dropdown-item" href="#">Last Quarter</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card Body -->
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="recipeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pie Chart -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card dashboard-card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Popular Categories</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                            aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Filter By:</div>
+                            <a class="dropdown-item" href="#">Views</a>
+                            <a class="dropdown-item" href="#">Likes</a>
+                            <a class="dropdown-item" href="#">Comments</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card Body -->
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="categoriesPieChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        {% for cuisine in cuisine_data %}
+                        <span class="me-2">
+                            <i class="fas fa-circle {% if cuisine.cuisine == 'International' %}text-success{% elif cuisine.cuisine == 'Luzon' %}text-primary{% elif cuisine.cuisine == 'Visayas' %}text-danger{% elif cuisine.cuisine == 'Mindanao' %}text-warning{% else %}text-secondary{% endif %}"></i> {{ cuisine.cuisine }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        <!-- Recent Activities -->
+        <div class="col-lg-6 mb-4">
+            <div class="card dashboard-card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Activities</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for activity in recent_activities %}
+                        <div class="list-group-item">
+                            <div class="d-flex align-items-center">
+                                {% if activity.profile_pic %}
+                                <img src="{{ url_for('static', filename=activity.profile_pic.replace('static/', '')) }}" alt="{{ activity.user_name }}" class="rounded-circle me-3" width="42" height="42">
+                                {% else %}
+                                <i class="fas fa-user-circle fa-2x text-secondary me-3"></i>
+                                {% endif %}
+                                <div>
+                                    <div class="d-flex align-items-center">
+                                        <span class="fw-medium">{{ activity.user_name }}</span>
+                                        <span class="small text-muted ms-2">{{ activity.relative_time }}</span>
+                                    </div>
+                                    <p class="mb-0 small">{{ activity.message }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        {% if not recent_activities %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-utensils fa-2x text-muted mb-2"></i>
+                            <p class="mb-0">No recent activities found</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if recent_activities %}
+                    <div class="text-center py-3 border-top">
+                        <a href="{{ url_for('admin_manage_recipes') }}" class="btn btn-sm btn-primary">View All Activities</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Latest Users -->
+        <div class="col-lg-6 mb-4">
+            <div class="card dashboard-card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Latest Users</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Joined</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in latest_users %}
+                                <tr>
+                                    <td class="align-middle">
+                                        <div class="d-flex align-items-center">
+                                            {% if user.profile_pic %}
+                                            <img src="{{ url_for('static', filename=user.profile_pic.replace('static/', '')) }}" alt="{{ user.first_name }}" class="rounded-circle me-2" width="40" height="40">
+                                            {% else %}
+                                            <i class="fas fa-user-circle fa-2x text-secondary me-2"></i>
+                                            {% endif %}
+                                            <span>{{ user.first_name }} {{ user.last_name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle">{{ user.email }}</td>
+                                    <td class="align-middle">{{ user.relative_time }}</td>
+                                    <td class="align-middle">
+                                        <a href="#" class="btn btn-sm btn-outline-primary" data-user-id="{{ user.id }}" onclick="viewUserDetails(this.getAttribute('data-user-id'))">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                
+                                {% if not latest_users %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4">
+                                        <i class="fas fa-users fa-2x text-muted mb-2"></i>
+                                        <p class="mb-0">No users found</p>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if latest_users %}
+                    <div class="text-center py-3 border-top">
+                        <a href="{{ url_for('admin_manage_users') }}" class="btn btn-sm btn-primary">View All Users</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Set width for progress bars using data attribute
+    document.addEventListener('DOMContentLoaded', function() {
+        const progressBars = document.querySelectorAll('.progress-bar[data-width]');
+        progressBars.forEach(bar => {
+            const width = bar.getAttribute('data-width');
+            bar.style.width = width + '%';
+        });
+    });
+
+    // Set new default font family and font color to mimic Bootstrap's default styling
+    Chart.defaults.font.family = 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+    Chart.defaults.color = '#858796';
+
+    // Recipe Uploads Overview Chart
+    var ctx = document.getElementById("recipeChart").getContext('2d');
+    
+    // Parse the data from the backend
+    var recipeData = JSON.parse('{{ recipe_uploads|tojson|safe }}');
+    var months = recipeData.map(function(item) { return item.month; });
+    var counts = recipeData.map(function(item) { return item.count; });
+    
+    var recipeChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [{
+                label: "Recipe Uploads",
+                lineTension: 0.3,
+                backgroundColor: "rgba(78, 115, 223, 0.05)",
+                borderColor: "rgba(78, 115, 223, 1)",
+                pointRadius: 3,
+                pointBackgroundColor: "rgba(78, 115, 223, 1)",
+                pointBorderColor: "rgba(78, 115, 223, 1)",
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+                pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+                pointHitRadius: 10,
+                pointBorderWidth: 2,
+                data: counts,
+                fill: true
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: "rgb(255,255,255)",
+                    bodyColor: "#858796",
+                    titleMarginBottom: 10,
+                    titleColor: '#6e707e',
+                    titleFont: {
+                        size: 14
+                    },
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    padding: 15,
+                    displayColors: false
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        maxTicksLimit: 7
+                    }
+                },
+                y: {
+                    ticks: {
+                        maxTicksLimit: 5,
+                        padding: 10
+                    },
+                    grid: {
+                        color: "rgb(234, 236, 244)",
+                        drawBorder: false,
+                        borderDash: [2],
+                        zeroLineBorderDash: [2]
+                    }
+                }
+            }
+        }
+    });
+
+    // Cuisine Types Pie Chart
+    var pieCtx = document.getElementById("categoriesPieChart").getContext('2d');
+    
+    // Parse the data from the backend
+    var cuisineData = JSON.parse('{{ cuisine_data|tojson|safe }}');
+    var cuisineLabels = cuisineData.map(function(item) { return item.cuisine; });
+    var cuisineCounts = cuisineData.map(function(item) { return item.count; });
+    
+    // Define colors based on cuisine type
+    var backgroundColors = cuisineLabels.map(function(cuisine) {
+        switch(cuisine) {
+            case 'International': return '#28a745'; // Green
+            case 'Luzon': return '#007bff'; // Blue
+            case 'Visayas': return '#dc3545'; // Red
+            case 'Mindanao': return '#ffc107'; // Yellow
+            default: return '#6c757d'; // Gray
+        }
+    });
+    
+    var pieChart = new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+            labels: cuisineLabels,
+            datasets: [{
+                data: cuisineCounts,
+                backgroundColor: backgroundColors,
+                hoverBackgroundColor: backgroundColors,
+                hoverBorderColor: "rgba(234, 236, 244, 1)",
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    backgroundColor: "rgb(255,255,255)",
+                    bodyColor: "#858796",
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    padding: 15,
+                    displayColors: false,
+                    callbacks: {
+                        label: function(context) {
+                            var label = context.label || '';
+                            var value = context.raw || 0;
+                            var total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            var percentage = Math.round((value / total) * 100);
+                            return label + ': ' + value + ' (' + percentage + '%)';
+                        }
+                    }
+                },
+                legend: {
+                    display: false
+                }
+            },
+            cutout: '70%'
+        }
+    });
+</script>
+{% endblock %} 

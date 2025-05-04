@@ -1,0 +1,493 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Manage Recipes</h1>
+    </div>
+
+    <!-- Recipes Table Card -->
+    <div class="card dashboard-card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">All Recipes</h6>
+            <div class="input-group" style="width: 300px;">
+                <input type="text" id="recipeSearchInput" class="form-control" placeholder="Search recipes...">
+                <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="recipesTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Recipe</th>
+                            <th>Author</th>
+                            <th>Created</th>
+                            <th>Updated</th>
+                            <th>Status</th>
+                            <th>Likes</th>
+                            <th>Comments</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for recipe in recipes %}
+                        <tr>
+                            <td class="align-middle">{{ recipe.id }}</td>
+                            <td class="align-middle">
+                                <div class="d-flex align-items-center">
+                                    {% if recipe.photo_path %}
+                                    <img src="{{ url_for('static', filename=recipe.photo_path) }}" alt="{{ recipe.title }}" class="rounded me-2" width="50" height="50" style="object-fit: cover;">
+                                    {% else %}
+                                    <i class="fas fa-utensils fa-2x text-secondary me-2"></i>
+                                    {% endif %}
+                                    <div>
+                                        <span class="fw-bold">{{ recipe.title }}</span>
+                                        <br>
+                                        <small class="text-muted">
+                                            {% if recipe.prep_time %}<i class="fas fa-clock me-1"></i>{{ recipe.prep_time }} min prep {% endif %}
+                                            {% if recipe.cook_time %}<i class="fas fa-fire me-1 ms-2"></i>{{ recipe.cook_time }} min cook{% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="align-middle">{{ recipe.author_name }}</td>
+                            <td class="align-middle">{{ recipe.created_at.strftime('%b %d, %Y') }}</td>
+                            <td class="align-middle">{{ recipe.updated_at.strftime('%b %d, %Y') }}</td>
+                            <td class="align-middle">
+                                <span class="badge {% if recipe.privacy == 'public' %}bg-success{% else %}bg-secondary{% endif %} rounded-pill">
+                                    {{ recipe.privacy }}
+                                </span>
+                            </td>
+                            <td class="align-middle"><i class="fas fa-heart text-danger me-1"></i>{{ recipe.likes_count }}</td>
+                            <td class="align-middle"><i class="fas fa-comment text-primary me-1"></i>{{ recipe.comments_count }}</td>
+                            <td class="align-middle">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton{{ recipe.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Actions
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ recipe.id }}">
+                                        <li><a class="dropdown-item" href="#" data-recipe-id="{{ recipe.id }}" onclick="event.preventDefault(); viewRecipeDetails(this.getAttribute('data-recipe-id'))"><i class="fas fa-eye me-2"></i>View Details</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item text-warning" href="#" 
+                                               data-recipe-id="{{ recipe.id }}" 
+                                               data-recipe-title="{{ recipe.title }}"
+                                               data-feature="{% if recipe.is_featured %}false{% else %}true{% endif %}"
+                                               onclick="event.preventDefault(); confirmFeatureRecipe(
+                                                   this.getAttribute('data-recipe-id'), 
+                                                   this.getAttribute('data-recipe-title'), 
+                                                   this.getAttribute('data-feature') === 'true'
+                                               )">
+                                                <i class="fas {% if recipe.is_featured %}fa-star-half-alt{% else %}fa-star{% endif %} me-2"></i>
+                                                {% if recipe.is_featured %}Remove from Featured{% else %}Add to Featured{% endif %}
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#" 
+                                               data-recipe-id="{{ recipe.id }}" 
+                                               data-recipe-title="{{ recipe.title }}"
+                                               onclick="event.preventDefault(); confirmDeleteRecipe(
+                                                   this.getAttribute('data-recipe-id'), 
+                                                   this.getAttribute('data-recipe-title')
+                                               )">
+                                                <i class="fas fa-trash-alt me-2"></i>Delete Recipe
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if not recipes %}
+            <div class="text-center py-5">
+                <i class="fas fa-utensils fa-4x text-muted mb-3"></i>
+                <h5>No recipes found</h5>
+                <p class="text-muted">There are no recipes in the database.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- View Recipe Details Modal -->
+<div class="modal fade" id="viewRecipeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Recipe Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="recipeDetailsContent" class="p-2">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading recipe details...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Recipe Confirmation Modal -->
+<div class="modal fade" id="deleteRecipeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">Delete Recipe</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Are you sure you want to delete the recipe <strong id="deleteRecipeTitle"></strong>?</p>
+                <p class="text-danger mb-0">This action cannot be undone and will remove all recipe data, comments, and interactions.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteRecipeForm" action="" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">Delete Recipe</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feature Recipe Confirmation Modal -->
+<div class="modal fade" id="featureRecipeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="featureModalTitle">Feature Recipe</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="featureModalBody">
+                <p class="mb-0">Are you sure you want to feature this recipe on the homepage?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="featureRecipeForm" action="" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="feature" id="featureValue" value="true">
+                    <button type="submit" class="btn btn-warning" id="featureRecipeBtn">Feature Recipe</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('recipeSearchInput');
+        const searchButton = document.getElementById('searchButton');
+        const tableBody = document.querySelector('#recipesTable tbody');
+        
+        // Handle search functionality
+        function performSearch() {
+            const searchTerm = searchInput.value.trim();
+            if (searchTerm.length < 2) return;
+            
+            // Show loading indicator
+            tableBody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><i class="fas fa-spinner fa-spin me-2"></i>Searching...</td></tr>';
+            
+            // Make the AJAX request
+            fetch(`/admin/search-recipes?q=${encodeURIComponent(searchTerm)}`)
+                .then(response => response.json())
+                .then(recipes => {
+                    if (recipes.length === 0) {
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="9" class="text-center py-4">
+                                    <i class="fas fa-search fa-2x text-muted mb-3"></i>
+                                    <h5>No recipes found</h5>
+                                    <p class="text-muted">No recipes match your search for "${searchTerm}"</p>
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
+                    
+                    // Populate table with search results
+                    updateRecipeTable(recipes);
+                })
+                .catch(error => {
+                    console.error('Error searching recipes:', error);
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="9" class="text-center py-4">
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    Error loading recipes. Please try again later.
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+        }
+        
+        // Update recipe table with data
+        function updateRecipeTable(recipes) {
+            tableBody.innerHTML = '';
+            
+            recipes.forEach(recipe => {
+                const recipeImage = recipe.photo_path 
+                    ? `<img src="/static/${recipe.photo_path}" alt="${recipe.title}" class="rounded me-2" width="50" height="50" style="object-fit: cover;">`
+                    : `<i class="fas fa-utensils fa-2x text-secondary me-2"></i>`;
+                
+                const prepTime = recipe.prep_time ? `<i class="fas fa-clock me-1"></i>${recipe.prep_time} min prep` : '';
+                const cookTime = recipe.cook_time ? `<i class="fas fa-fire me-1 ms-2"></i>${recipe.cook_time} min cook` : '';
+                const isFeatured = recipe.is_featured === 1 || recipe.is_featured === true;
+                const featureText = isFeatured ? 'Remove from Featured' : 'Add to Featured';
+                const featureIcon = isFeatured ? 'fa-star-half-alt' : 'fa-star';
+                
+                tableBody.innerHTML += `
+                    <tr>
+                        <td class="align-middle">${recipe.id}</td>
+                        <td class="align-middle">
+                            <div class="d-flex align-items-center">
+                                ${recipeImage}
+                                <div>
+                                    <span class="fw-bold">${recipe.title}</span>
+                                    <br>
+                                    <small class="text-muted">
+                                        ${prepTime} ${cookTime}
+                                    </small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="align-middle">${recipe.author_name}</td>
+                        <td class="align-middle">${recipe.created_at}</td>
+                        <td class="align-middle">${recipe.updated_at}</td>
+                        <td class="align-middle">
+                            <span class="badge ${recipe.privacy === 'public' ? 'bg-success' : 'bg-secondary'} rounded-pill">
+                                ${recipe.privacy}
+                            </span>
+                        </td>
+                        <td class="align-middle"><i class="fas fa-heart text-danger me-1"></i>${recipe.likes_count}</td>
+                        <td class="align-middle"><i class="fas fa-comment text-primary me-1"></i>${recipe.comments_count}</td>
+                        <td class="align-middle">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Actions
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" data-recipe-id="${recipe.id}" onclick="event.preventDefault(); viewRecipeDetails(this.getAttribute('data-recipe-id'))"><i class="fas fa-eye me-2"></i>View Details</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-warning" href="#" 
+                                           data-recipe-id="${recipe.id}" 
+                                           data-recipe-title="${recipe.title}"
+                                           data-feature="${!isFeatured}"
+                                           onclick="event.preventDefault(); confirmFeatureRecipe(
+                                               this.getAttribute('data-recipe-id'), 
+                                               this.getAttribute('data-recipe-title'), 
+                                               this.getAttribute('data-feature') === 'true'
+                                           )">
+                                            <i class="fas ${featureIcon} me-2"></i>${featureText}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#" 
+                                           data-recipe-id="${recipe.id}" 
+                                           data-recipe-title="${recipe.title}"
+                                           onclick="event.preventDefault(); confirmDeleteRecipe(
+                                               this.getAttribute('data-recipe-id'), 
+                                               this.getAttribute('data-recipe-title')
+                                           )">
+                                            <i class="fas fa-trash-alt me-2"></i>Delete Recipe
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            // Reinitialize dropdowns for the newly created elements
+            const dropdownElementList = document.querySelectorAll('.dropdown-toggle');
+            dropdownElementList.forEach(dropdown => new bootstrap.Dropdown(dropdown));
+        }
+        
+        // Event listeners
+        searchButton.addEventListener('click', performSearch);
+        searchInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+    });
+    
+    // View recipe details
+    function viewRecipeDetails(recipeId) {
+        const modal = new bootstrap.Modal(document.getElementById('viewRecipeModal'));
+        const modalContent = document.getElementById('recipeDetailsContent');
+        
+        modalContent.innerHTML = `
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading recipe details...</p>
+            </div>
+        `;
+        
+        modal.show();
+        
+        // Fetch recipe details
+        fetch(`/admin/recipe/${recipeId}/details`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const recipe = data.recipe;
+                    
+                    // Format ingredients and instructions as lists
+                    const ingredientsList = recipe.ingredients
+                        .split('\n')
+                        .filter(item => item.trim())
+                        .map(item => `<li class="list-group-item">${item}</li>`)
+                        .join('');
+                        
+                    const instructionsList = recipe.instructions
+                        .split('\n')
+                        .filter(item => item.trim())
+                        .map((item, index) => `<div class="mb-3"><span class="fw-bold me-2">${index + 1}.</span> ${item}</div>`)
+                        .join('');
+                    
+                    // Format recipe image
+                    const recipeImage = recipe.photo_path
+                        ? `<img src="/static/${recipe.photo_path}" alt="${recipe.title}" class="img-fluid rounded mb-3" style="max-height: 300px; object-fit: cover;">`
+                        : `<div class="text-center p-4 bg-light rounded mb-3"><i class="fas fa-utensils fa-4x text-secondary"></i><p class="mt-2 text-muted">No image available</p></div>`;
+                    
+                    // Populate modal with recipe details
+                    modalContent.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                ${recipeImage}
+                            </div>
+                            <div class="col-md-6">
+                                <h3 class="mb-3">${recipe.title}</h3>
+                                <p class="text-muted">${recipe.description || 'No description available'}</p>
+                                
+                                <div class="row mb-4">
+                                    <div class="col-4">
+                                        <div class="text-center">
+                                            <i class="fas fa-clock fa-2x text-primary mb-2"></i>
+                                            <h5>Prep Time</h5>
+                                            <p class="mb-0">${recipe.prep_time || 'N/A'} min</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="text-center">
+                                            <i class="fas fa-fire fa-2x text-danger mb-2"></i>
+                                            <h5>Cook Time</h5>
+                                            <p class="mb-0">${recipe.cook_time || 'N/A'} min</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="text-center">
+                                            <i class="fas fa-utensils fa-2x text-success mb-2"></i>
+                                            <h5>Servings</h5>
+                                            <p class="mb-0">${recipe.servings || 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-user me-1"></i> Created by: <strong>${recipe.author_name}</strong>
+                                        <span class="mx-2">|</span>
+                                        <i class="fas fa-calendar me-1"></i> Created: <strong>${recipe.created_at}</strong>
+                                        <br>
+                                        <i class="fas fa-heart text-danger me-1"></i> <strong>${recipe.likes_count}</strong>
+                                        <span class="mx-2">|</span>
+                                        <i class="fas fa-comment text-primary me-1"></i> <strong>${recipe.comments_count}</strong>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <h5 class="mb-3"><i class="fas fa-list-ul me-2 text-primary"></i>Ingredients</h5>
+                                <ul class="list-group list-group-flush">
+                                    ${ingredientsList || '<li class="list-group-item">No ingredients available</li>'}
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="mb-3"><i class="fas fa-tasks me-2 text-primary"></i>Instructions</h5>
+                                ${instructionsList || '<p>No instructions available</p>'}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    modalContent.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            ${data.error || 'Error loading recipe details. Please try again.'}
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching recipe details:', error);
+                modalContent.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Error loading recipe details. Please try again later.
+                    </div>
+                `;
+            });
+    }
+    
+    // Confirm delete recipe
+    function confirmDeleteRecipe(recipeId, recipeTitle) {
+        const modal = new bootstrap.Modal(document.getElementById('deleteRecipeModal'));
+        document.getElementById('deleteRecipeTitle').textContent = recipeTitle;
+        document.getElementById('deleteRecipeForm').action = `/admin/recipe/${recipeId}/delete`;
+        modal.show();
+    }
+    
+    // Confirm feature recipe
+    function confirmFeatureRecipe(recipeId, recipeTitle, feature) {
+        const modal = new bootstrap.Modal(document.getElementById('featureRecipeModal'));
+        const modalTitle = document.getElementById('featureModalTitle');
+        const modalBody = document.getElementById('featureModalBody');
+        const featureBtn = document.getElementById('featureRecipeBtn');
+        const featureValue = document.getElementById('featureValue');
+        
+        if (feature) {
+            modalTitle.textContent = 'Feature Recipe';
+            modalBody.innerHTML = `<p class="mb-0">Are you sure you want to feature <strong>${recipeTitle}</strong> on the homepage?</p>`;
+            featureBtn.textContent = 'Feature Recipe';
+            featureBtn.classList.remove('btn-secondary');
+            featureBtn.classList.add('btn-warning');
+            featureValue.value = 'true';
+        } else {
+            modalTitle.textContent = 'Remove Featured Recipe';
+            modalBody.innerHTML = `<p class="mb-0">Are you sure you want to remove <strong>${recipeTitle}</strong> from featured recipes?</p>`;
+            featureBtn.textContent = 'Remove Featured';
+            featureBtn.classList.remove('btn-warning');
+            featureBtn.classList.add('btn-secondary');
+            featureValue.value = 'false';
+        }
+        
+        document.getElementById('featureRecipeForm').action = `/admin/recipe/${recipeId}/feature`;
+        modal.show();
+    }
+</script>
+{% endblock %} 

@@ -1,0 +1,360 @@
+{% extends "user/dashboard_layout.html" %}
+{% set show_sidebar = false %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4">
+        <!-- Profile Info Card -->
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                {% if current_user and current_user.profile_pic %}
+                <img src="{{ url_for('static', filename=current_user.profile_pic) }}" 
+                     class="rounded-circle img-thumbnail mb-3" alt="Profile Picture" 
+                     style="width: 150px; height: 150px; object-fit: cover;">
+                {% else %}
+                <img src="{{ url_for('static', filename='images/default-avatar.svg') }}" 
+                     class="rounded-circle img-thumbnail mb-3" alt="Default Profile" 
+                     style="width: 150px; height: 150px; object-fit: cover;">
+                {% endif %}
+                
+                <h5 class="mb-1">{{ current_user.first_name }} {{ current_user.last_name }}</h5>
+                <p class="text-muted mb-3">
+                    {% if current_user.location %}
+                    <i class="fas fa-map-marker-alt me-1"></i> {{ current_user.location }}
+                    {% else %}
+                    <i class="fas fa-map-marker-alt me-1"></i> No location set
+                    {% endif %}
+                </p>
+                
+                <div class="d-flex justify-content-center mb-2">
+                    <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                        <i class="fas fa-user-edit me-1"></i> Edit Profile
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#changePhotoModal">
+                        <i class="fas fa-camera me-1"></i> Change Photo
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Stats Card -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Stats</h5>
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="stat-value">{{ stats.recipe_count }}</div>
+                        <div class="stat-label">Recipes</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-value">{{ stats.followers_count }}</div>
+                        <div class="stat-label">Followers</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-value">{{ stats.following_count }}</div>
+                        <div class="stat-label">Following</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- About Card -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">About</h5>
+                {% if current_user.bio %}
+                <p>{{ current_user.bio }}</p>
+                {% else %}
+                <p class="text-muted">No bio information provided yet.</p>
+                {% endif %}
+                
+                <hr>
+                
+                <div class="mb-2">
+                    <i class="fas fa-envelope me-2"></i> {{ current_user.email }}
+                </div>
+                
+                {% if current_user.phone %}
+                <div class="mb-2">
+                    <i class="fas fa-phone me-2"></i> {{ current_user.phone }}
+                </div>
+                {% endif %}
+                
+                {% if current_user.birthday %}
+                <div class="mb-2">
+                    <i class="fas fa-birthday-cake me-2"></i> {{ current_user.birthday.strftime('%B %d, %Y') }}
+                </div>
+                {% endif %}
+                
+                <div class="mb-2">
+                    <i class="fas fa-calendar-alt me-2"></i> Joined {{ current_user.created_at.strftime('%B %Y') }}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <!-- My Recipes Card -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">My Recipes</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if user_recipes %}
+                        {% for recipe in user_recipes %}
+                        <!-- Recipe Item -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                {% if recipe.photo_path %}
+                                <img src="{{ url_for('static', filename=recipe.photo_path) }}" class="card-img-top" alt="{{ recipe.title }}" style="height: 180px; object-fit: cover;">
+                                {% else %}
+                                <img src="{{ url_for('static', filename='images/default-recipe.jpg') }}" class="card-img-top" alt="{{ recipe.title }}" style="height: 180px; object-fit: cover;">
+                                {% endif %}
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ recipe.title }}</h5>
+                                    <p class="card-text small text-muted mb-2">
+                                        {% if recipe.prep_time %}
+                                        <i class="fas fa-clock me-1"></i> {{ recipe.prep_time }} min
+                                        {% endif %}
+                                        {% if recipe.servings %}
+                                        <i class="fas fa-utensils ms-2 me-1"></i> {{ recipe.servings }} servings
+                                        {% endif %}
+                                    </p>
+                                    {% if recipe.description %}
+                                    <p class="card-text small">{{ recipe.description|truncate(60) }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="card-footer bg-white">
+                                    <small class="text-muted">
+                                        <i class="fas fa-heart text-danger me-1"></i> {{ recipe.likes_count }}
+                                        <i class="fas fa-comment ms-2 me-1"></i> {{ recipe.comments_count }}
+                                    </small>
+                                    <div class="dropdown float-end">
+                                        <button class="btn btn-sm text-muted" type="button" data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editRecipeModal" data-recipe-id="{{ recipe.id }}"><i class="fas fa-edit me-2"></i>Edit</a></li>
+                                            <li><a class="dropdown-item" href="#" data-recipe-id="{{ recipe.id }}"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-utensils fa-3x text-muted mb-3"></i>
+                            <h5>No Recipes Yet</h5>
+                            <p class="text-muted">You haven't created any recipes yet.</p>
+                            <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#createRecipeModal">
+                                <i class="fas fa-plus me-1"></i> Create Your First Recipe
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% if user_recipes and user_recipes|length > 6 %}
+            <div class="card-footer bg-white text-center">
+                <a href="#" class="btn btn-link text-primary">View All Recipes</a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Activity Feed Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Activity</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% if activities %}
+                        {% for activity in activities %}
+                            <li class="list-group-item p-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        {% if activity.activity_type == 'recipe_created' %}
+                                        <div class="bg-success rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-utensils text-white"></i>
+                                        </div>
+                                        {% elif activity.activity_type == 'recipe_like' %}
+                                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-heart text-white"></i>
+                                        </div>
+                                        {% elif activity.activity_type == 'recipe_comment' %}
+                                        <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-comment text-white"></i>
+                                        </div>
+                                        {% elif activity.activity_type == 'follow_user' %}
+                                        <div class="bg-info rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-user-plus text-white"></i>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        {% if activity.activity_type == 'recipe_created' %}
+                                        <p class="mb-1">You created a new recipe: <a href="{{ url_for('view_recipe', recipe_id=activity.entity_id) }}">{{ activity.entity_name }}</a></p>
+                                        {% elif activity.activity_type == 'recipe_like' %}
+                                        <p class="mb-1">You liked <a href="{{ url_for('view_recipe', recipe_id=activity.entity_id) }}">{{ activity.entity_name }}</a>
+                                            {% if activity.related_user_name %}
+                                            by <a href="#" data-user-id="{{ activity.related_user_id }}">{{ activity.related_user_name }}</a>
+                                            {% endif %}
+                                        </p>
+                                        {% elif activity.activity_type == 'recipe_comment' %}
+                                        <p class="mb-1">You commented on <a href="{{ url_for('view_recipe', recipe_id=activity.entity_id) }}">{{ activity.entity_name }}</a>
+                                            {% if activity.related_user_name %}
+                                            by <a href="#" data-user-id="{{ activity.related_user_id }}">{{ activity.related_user_name }}</a>
+                                            {% endif %}
+                                        </p>
+                                        {% elif activity.activity_type == 'follow_user' %}
+                                        <p class="mb-1">You started following <a href="#" data-user-id="{{ activity.related_user_id }}">{{ activity.related_user_name }}</a></p>
+                                        {% endif %}
+                                        <small class="text-muted">{{ activity.relative_time }}</small>
+                                    </div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="list-group-item py-4 text-center">
+                            <div class="py-3">
+                                <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                                <h5>No Activity Yet</h5>
+                                <p class="text-muted">Your recent activity will appear here.</p>
+                            </div>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% if activities and activities|length >= 10 %}
+            <div class="card-footer bg-white text-center">
+                <a href="#" class="btn btn-link text-primary">View All Activity</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('update_profile') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ current_user.first_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ current_user.last_name }}" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" value="{{ current_user.email }}" readonly>
+                        <div class="form-text">Email cannot be changed.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" value="{{ current_user.phone or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Location</label>
+                        <input type="text" class="form-control" id="location" name="location" value="{{ current_user.location or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="birthday" class="form-label">Birthday</label>
+                        <input type="date" class="form-control" id="birthday" name="birthday" value="{{ current_user.birthday.strftime('%Y-%m-%d') if current_user.birthday else '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="bio" class="form-label">Bio</label>
+                        <textarea class="form-control" id="bio" name="bio" rows="3">{{ current_user.bio or '' }}</textarea>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Photo Modal -->
+<div class="modal fade" id="changePhotoModal" tabindex="-1" aria-labelledby="changePhotoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changePhotoModalLabel">Change Profile Photo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('update_profile_picture') }}" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3 text-center">
+                        {% if current_user and current_user.profile_pic %}
+                        <img src="{{ url_for('static', filename=current_user.profile_pic) }}" 
+                             class="rounded-circle img-thumbnail mb-3" id="profile-preview" 
+                             style="width: 150px; height: 150px; object-fit: cover;">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='images/default-avatar.svg') }}" 
+                             class="rounded-circle img-thumbnail mb-3" id="profile-preview" 
+                             style="width: 150px; height: 150px; object-fit: cover;">
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="profile_pic" class="form-label">Upload New Photo</label>
+                        <input class="form-control" type="file" id="profile_pic" name="profile_pic" accept="image/png, image/jpeg, image/gif" required>
+                        <div class="form-text">Allowed file types: PNG, JPG, GIF. Maximum size: 5MB.</div>
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Upload Photo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for User Profile Links -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click event listeners to user links
+    document.querySelectorAll('a[data-user-id]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const userId = this.getAttribute('data-user-id');
+            if (userId) {
+                window.parent.showUserProfileModal(userId);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+    // Preview the selected image before upload
+    document.getElementById('profile_pic').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('profile-preview').src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+{% endblock %} 

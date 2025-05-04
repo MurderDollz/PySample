@@ -1,0 +1,112 @@
+{% extends "user/dashboard_layout.html" %}
+{% set show_sidebar = false %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-3">
+        <!-- Settings Navigation -->
+        <div class="card mb-4">
+            <div class="list-group list-group-flush">
+                <a href="#account-section" class="list-group-item list-group-item-action active" data-bs-toggle="list">
+                    <i class="fas fa-user-shield me-2"></i> Account Security
+                </a>
+                <a href="#privacy-section" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="fas fa-lock me-2"></i> Privacy
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-9">
+        <!-- Settings Content -->
+        <div class="tab-content">            
+            <!-- Account Security Section -->
+            <div class="tab-pane fade show active" id="account-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Account Security</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="mb-3">Change Password</h6>
+                        <form>
+                            <div class="mb-3">
+                                <label for="current_password" class="form-label">Current Password</label>
+                                <input type="password" class="form-control" id="current_password" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="new_password" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="new_password" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirm_password" class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control" id="confirm_password" required>
+                            </div>
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary">Update Password</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Privacy Section -->
+            <div class="tab-pane fade" id="privacy-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Privacy Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="mb-3">Account Privacy</h6>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="account_privacy" id="privacy_public" checked>
+                            <label class="form-check-label" for="privacy_public">
+                                <strong>Public Account</strong>
+                                <div class="text-muted">Anyone can see your profile and recipes.</div>
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="account_privacy" id="privacy_private">
+                            <label class="form-check-label" for="privacy_private">
+                                <strong>Private Account</strong>
+                                <div class="text-muted">Only your followers can see your profile and recipes.</div>
+                            </label>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <h6 class="mb-3">Visibility Options</h6>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="show_email" checked>
+                            <label class="form-check-label" for="show_email">Show email on profile</label>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="show_location" checked>
+                            <label class="form-check-label" for="show_location">Show location on profile</label>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="show_activity">
+                            <label class="form-check-label" for="show_activity">Show activity status</label>
+                        </div>
+                        
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">Save Privacy Settings</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+    // Enable Bootstrap tabs
+    document.addEventListener('DOMContentLoaded', function() {
+        const triggerTabList = [].slice.call(document.querySelectorAll('.list-group-item[data-bs-toggle="list"]'));
+        triggerTabList.forEach(function(triggerEl) {
+            new bootstrap.Tab(triggerEl);
+        });
+    });
+</script>
+{% endblock %} 

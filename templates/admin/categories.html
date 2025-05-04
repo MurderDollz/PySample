@@ -1,0 +1,416 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Recipe Categories</h1>
+    </div>
+
+    <!-- Cuisine Type Navigation Tabs -->
+    <div class="card dashboard-card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Cuisine Types</h6>
+        </div>
+        <div class="card-body">
+            <ul class="nav nav-tabs" id="cuisineTabs" role="tablist">
+                {% for cuisine in cuisine_types %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if loop.first %}active{% endif %}" 
+                            id="tab-{{ cuisine|lower|replace(' ', '-') }}" 
+                            data-bs-toggle="tab" 
+                            data-bs-target="#content-{{ cuisine|lower|replace(' ', '-') }}" 
+                            type="button" 
+                            role="tab" 
+                            aria-controls="content-{{ cuisine|lower|replace(' ', '-') }}" 
+                            aria-selected="{% if loop.first %}true{% else %}false{% endif %}">
+                        {% if cuisine == 'International' %}
+                            <i class="fas fa-globe-americas me-1"></i>
+                        {% elif cuisine == 'Luzon' %}
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                        {% elif cuisine == 'Visayas' %}
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                        {% elif cuisine == 'Mindanao' %}
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                        {% else %}
+                            <i class="fas fa-utensils me-1"></i>
+                        {% endif %}
+                        {{ cuisine }}
+                        <span class="badge bg-primary rounded-pill ms-1">{{ cuisine_recipes[cuisine]|length }}</span>
+                    </button>
+                </li>
+                {% endfor %}
+            </ul>
+            
+            <div class="tab-content pt-4" id="cuisineTabsContent">
+                {% for cuisine in cuisine_types %}
+                <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
+                     id="content-{{ cuisine|lower|replace(' ', '-') }}" 
+                     role="tabpanel" 
+                     aria-labelledby="tab-{{ cuisine|lower|replace(' ', '-') }}">
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">
+                            {% if cuisine == 'International' %}
+                                <span class="badge bg-success py-2 px-3"><i class="fas fa-globe-americas me-1"></i> International Cuisine</span>
+                            {% elif cuisine == 'Luzon' %}
+                                <span class="badge bg-primary py-2 px-3"><i class="fas fa-map-marker-alt me-1"></i> Luzon Cuisine</span>
+                            {% elif cuisine == 'Visayas' %}
+                                <span class="badge bg-danger py-2 px-3"><i class="fas fa-map-marker-alt me-1"></i> Visayas Cuisine</span>
+                            {% elif cuisine == 'Mindanao' %}
+                                <span class="badge bg-warning text-dark py-2 px-3"><i class="fas fa-map-marker-alt me-1"></i> Mindanao Cuisine</span>
+                            {% else %}
+                                <span class="badge bg-secondary py-2 px-3"><i class="fas fa-utensils me-1"></i> {{ cuisine }} Cuisine</span>
+                            {% endif %}
+                        </h5>
+                        <div class="input-group" style="width: 300px;">
+                            <input type="text" class="form-control recipe-search-input" placeholder="Search {{ cuisine }} recipes...">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover recipe-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Recipe</th>
+                                    <th>Author</th>
+                                    <th>Created</th>
+                                    <th>Status</th>
+                                    <th>Likes</th>
+                                    <th>Comments</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for recipe in cuisine_recipes[cuisine] %}
+                                <tr>
+                                    <td class="align-middle">{{ recipe.id }}</td>
+                                    <td class="align-middle">
+                                        <div class="d-flex align-items-center">
+                                            {% if recipe.photo_path %}
+                                            <img src="{{ url_for('static', filename=recipe.photo_path) }}" alt="{{ recipe.title }}" class="rounded me-2" width="50" height="50" style="object-fit: cover;">
+                                            {% else %}
+                                            <i class="fas fa-utensils fa-2x text-secondary me-2"></i>
+                                            {% endif %}
+                                            <div>
+                                                <span class="fw-bold">{{ recipe.title }}</span>
+                                                <br>
+                                                <small class="text-muted">
+                                                    {% if recipe.prep_time %}<i class="fas fa-clock me-1"></i>{{ recipe.prep_time }} min prep {% endif %}
+                                                    {% if recipe.cook_time %}<i class="fas fa-fire me-1 ms-2"></i>{{ recipe.cook_time }} min cook{% endif %}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle">{{ recipe.author_name }}</td>
+                                    <td class="align-middle">{{ recipe.created_at.strftime('%b %d, %Y') }}</td>
+                                    <td class="align-middle">
+                                        <span class="badge {% if recipe.privacy == 'public' %}bg-success{% else %}bg-secondary{% endif %} rounded-pill">
+                                            {{ recipe.privacy }}
+                                        </span>
+                                    </td>
+                                    <td class="align-middle"><i class="fas fa-heart text-danger me-1"></i>{{ recipe.likes_count }}</td>
+                                    <td class="align-middle"><i class="fas fa-comment text-primary me-1"></i>{{ recipe.comments_count }}</td>
+                                    <td class="align-middle">
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton{{ recipe.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                Actions
+                                            </button>
+                                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ recipe.id }}">
+                                                <li><a class="dropdown-item" href="#" data-recipe-id="{{ recipe.id }}" onclick="event.preventDefault(); viewRecipeDetails(this.getAttribute('data-recipe-id'))"><i class="fas fa-eye me-2"></i>View Details</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item text-warning" href="#" 
+                                                       data-recipe-id="{{ recipe.id }}" 
+                                                       data-recipe-title="{{ recipe.title }}"
+                                                       data-feature="{% if recipe.is_featured %}false{% else %}true{% endif %}"
+                                                       onclick="event.preventDefault(); confirmFeatureRecipe(
+                                                           this.getAttribute('data-recipe-id'), 
+                                                           this.getAttribute('data-recipe-title'), 
+                                                           this.getAttribute('data-feature') === 'true'
+                                                       )">
+                                                        <i class="fas {% if recipe.is_featured %}fa-star-half-alt{% else %}fa-star{% endif %} me-2"></i>
+                                                        {% if recipe.is_featured %}Remove from Featured{% else %}Add to Featured{% endif %}
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item text-danger" href="#" 
+                                                       data-recipe-id="{{ recipe.id }}" 
+                                                       data-recipe-title="{{ recipe.title }}"
+                                                       onclick="event.preventDefault(); confirmDeleteRecipe(
+                                                           this.getAttribute('data-recipe-id'), 
+                                                           this.getAttribute('data-recipe-title')
+                                                       )">
+                                                        <i class="fas fa-trash-alt me-2"></i>Delete Recipe
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if not cuisine_recipes[cuisine] %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-utensils fa-4x text-muted mb-3"></i>
+                        <h5>No recipes found</h5>
+                        <p class="text-muted">There are no recipes with {{ cuisine }} cuisine type.</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Recipe Details Modal -->
+<div class="modal fade" id="viewRecipeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Recipe Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="recipeDetailsContent" class="p-2">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading recipe details...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Recipe Confirmation Modal -->
+<div class="modal fade" id="deleteRecipeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">Delete Recipe</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Are you sure you want to delete the recipe <strong id="deleteRecipeTitle"></strong>?</p>
+                <p class="text-danger mb-0">This action cannot be undone and will remove all recipe data, comments, and interactions.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteRecipeForm" action="" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">Delete Recipe</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feature Recipe Confirmation Modal -->
+<div class="modal fade" id="featureRecipeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="featureModalTitle">Feature Recipe</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="featureModalBody">
+                <p class="mb-0">Are you sure you want to feature this recipe on the homepage?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="featureRecipeForm" action="" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="feature" id="featureValue" value="true">
+                    <button type="submit" class="btn btn-warning" id="featureRecipeBtn">Feature Recipe</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Recipe search functionality for each tab
+        const searchInputs = document.querySelectorAll('.recipe-search-input');
+        searchInputs.forEach(input => {
+            input.addEventListener('keyup', function() {
+                const searchValue = this.value.toLowerCase();
+                const tabContent = this.closest('.tab-pane');
+                const tableRows = tabContent.querySelectorAll('tbody tr');
+                
+                tableRows.forEach(row => {
+                    const title = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    const author = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                    
+                    if (title.includes(searchValue) || author.includes(searchValue)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        // Recipe details modal functionality
+        window.viewRecipeDetails = function(recipeId) {
+            const modal = new bootstrap.Modal(document.getElementById('viewRecipeModal'));
+            const contentDiv = document.getElementById('recipeDetailsContent');
+            
+            // Show loading state
+            contentDiv.innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading recipe details...</p>
+                </div>
+            `;
+            
+            modal.show();
+            
+            // Fetch recipe details
+            fetch(`/admin/recipe/${recipeId}/details`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const recipe = data.recipe;
+                        
+                        // Format recipe details
+                        let recipeHtml = `
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    ${recipe.photo_path ? 
+                                      `<img src="${recipe.photo_path.startsWith('/') ? recipe.photo_path : '/static/' + recipe.photo_path}" 
+                                            alt="${recipe.title}" class="img-fluid rounded">` : 
+                                      `<div class="text-center p-5 bg-light rounded">
+                                          <i class="fas fa-utensils fa-4x text-secondary"></i>
+                                          <p class="mt-2 text-muted">No image available</p>
+                                       </div>`
+                                    }
+                                </div>
+                                <div class="col-md-8">
+                                    <h4>${recipe.title}</h4>
+                                    <p class="text-muted">${recipe.description || 'No description provided'}</p>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <p><strong>Author:</strong> ${recipe.author_name}</p>
+                                            <p><strong>Privacy:</strong> <span class="badge ${recipe.privacy === 'public' ? 'bg-success' : 'bg-secondary'}">${recipe.privacy}</span></p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Created:</strong> ${recipe.created_at}</p>
+                                            <p><strong>Updated:</strong> ${recipe.updated_at}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <p><strong>Prep Time:</strong> ${recipe.prep_time ? recipe.prep_time + ' min' : 'N/A'}</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <p><strong>Cook Time:</strong> ${recipe.cook_time ? recipe.cook_time + ' min' : 'N/A'}</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <p><strong>Servings:</strong> ${recipe.servings || 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <p><strong>Cuisine Type:</strong> 
+                                            <span class="badge ${
+                                                recipe.cuisine_type === 'International' ? 'bg-success' : 
+                                                recipe.cuisine_type === 'Luzon' ? 'bg-primary' : 
+                                                recipe.cuisine_type === 'Visayas' ? 'bg-danger' : 
+                                                recipe.cuisine_type === 'Mindanao' ? 'bg-warning text-dark' : 
+                                                'bg-secondary'
+                                            }">
+                                                ${recipe.cuisine_type || 'Other'}
+                                            </span>
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <p><strong>Engagement:</strong></p>
+                                        <div class="d-flex">
+                                            <span class="me-3"><i class="fas fa-heart text-danger"></i> ${recipe.likes_count} likes</span>
+                                            <span><i class="fas fa-comment text-primary"></i> ${recipe.comments_count} comments</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col-md-6 mb-3">
+                                    <h5>Ingredients</h5>
+                                    <div class="p-3 bg-light rounded">
+                                        <pre class="mb-0">${recipe.ingredients || 'No ingredients provided'}</pre>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <h5>Instructions</h5>
+                                    <div class="p-3 bg-light rounded">
+                                        <pre class="mb-0">${recipe.instructions || 'No instructions provided'}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        contentDiv.innerHTML = recipeHtml;
+                    } else {
+                        contentDiv.innerHTML = `
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-circle me-2"></i> ${data.error || 'An error occurred while loading recipe details.'}
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    contentDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i> An error occurred: ${error.message}
+                        </div>
+                    `;
+                });
+        };
+        
+        // Delete recipe functionality
+        window.confirmDeleteRecipe = function(recipeId, recipeTitle) {
+            document.getElementById('deleteRecipeTitle').textContent = recipeTitle;
+            document.getElementById('deleteRecipeForm').action = `/admin/recipe/${recipeId}/delete`;
+            
+            const modal = new bootstrap.Modal(document.getElementById('deleteRecipeModal'));
+            modal.show();
+        };
+        
+        // Feature recipe functionality
+        window.confirmFeatureRecipe = function(recipeId, recipeTitle, shouldFeature) {
+            document.getElementById('featureModalTitle').textContent = shouldFeature ? 'Feature Recipe' : 'Remove from Featured';
+            document.getElementById('featureModalBody').innerHTML = shouldFeature ?
+                `<p class="mb-0">Are you sure you want to feature <strong>${recipeTitle}</strong> on the homepage?</p>` :
+                `<p class="mb-0">Are you sure you want to remove <strong>${recipeTitle}</strong> from featured recipes?</p>`;
+            
+            document.getElementById('featureRecipeBtn').textContent = shouldFeature ? 'Feature Recipe' : 'Remove from Featured';
+            document.getElementById('featureRecipeForm').action = `/admin/recipe/${recipeId}/feature`;
+            document.getElementById('featureValue').value = shouldFeature ? 'true' : 'false';
+            
+            const modal = new bootstrap.Modal(document.getElementById('featureRecipeModal'));
+            modal.show();
+        };
+    });
+</script>
+{% endblock %} 

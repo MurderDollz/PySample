@@ -1,0 +1,533 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="admin-dashboard">
+    <!-- Admin Header -->
+    <div class="container-fluid bg-primary text-white py-4 mb-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-2"><i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard</h1>
+                    <p class="lead mb-0">Website overview and user management</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="d-flex align-items-center justify-content-md-end">
+                        <div class="admin-profile me-3">
+                            <i class="fas fa-user-circle fa-2x text-white"></i>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-light dropdown-toggle" type="button" id="adminMenu" data-bs-toggle="dropdown">
+                                Admin User
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-user-circle me-2"></i>Profile</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Dashboard Stats -->
+        <div class="row mb-4">
+            <div class="col-md-3 col-sm-6 mb-4 mb-md-0">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="stat-icon rounded-circle bg-primary text-white p-3">
+                                <i class="fas fa-book-open fa-lg"></i>
+                            </div>
+                            <h4 class="mb-0 text-primary">124</h4>
+                        </div>
+                        <h6 class="text-muted">Total Recipes</h6>
+                        <div class="progress mt-3" style="height: 5px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 70%"></div>
+                        </div>
+                        <small class="text-muted d-block mt-2">+12 new this month</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6 mb-4 mb-md-0">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="stat-icon rounded-circle bg-success text-white p-3">
+                                <i class="fas fa-users fa-lg"></i>
+                            </div>
+                            <h4 class="mb-0 text-success">587</h4>
+                        </div>
+                        <h6 class="text-muted">Registered Users</h6>
+                        <div class="progress mt-3" style="height: 5px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 85%"></div>
+                        </div>
+                        <small class="text-muted d-block mt-2">+45 new this month</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6 mb-4 mb-md-0">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="stat-icon rounded-circle bg-danger text-white p-3">
+                                <i class="fas fa-heart fa-lg"></i>
+                            </div>
+                            <h4 class="mb-0 text-danger">2,156</h4>
+                        </div>
+                        <h6 class="text-muted">Recipe Favorites</h6>
+                        <div class="progress mt-3" style="height: 5px;">
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: 65%"></div>
+                        </div>
+                        <small class="text-muted d-block mt-2">+230 this month</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6 mb-4 mb-md-0">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="stat-icon rounded-circle bg-info text-white p-3">
+                                <i class="fas fa-comment fa-lg"></i>
+                            </div>
+                            <h4 class="mb-0 text-info">892</h4>
+                        </div>
+                        <h6 class="text-muted">Comments</h6>
+                        <div class="progress mt-3" style="height: 5px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: 50%"></div>
+                        </div>
+                        <small class="text-muted d-block mt-2">+78 this month</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-lg-8">
+                <!-- Registered Users Table -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                        <h5 class="mb-0"><i class="fas fa-users me-2"></i>All Registered Users</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th scope="col" width="60">ID</th>
+                                        <th scope="col">User</th>
+                                        <th scope="col">Email</th>
+                                        <th scope="col">Role</th>
+                                        <th scope="col">Joined Date</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col" width="120">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-user-circle fa-2x text-secondary me-2"></i>
+                                                <div>John Doe</div>
+                                            </div>
+                                        </td>
+                                        <td>john.doe@example.com</td>
+                                        <td><span class="badge bg-primary">Admin</span></td>
+                                        <td>Jan 15, 2023</td>
+                                        <td><span class="badge bg-success">Active</span></td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></button>
+                                                <button class="btn btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-user-circle fa-2x text-secondary me-2"></i>
+                                                <div>Jane Smith</div>
+                                            </div>
+                                        </td>
+                                        <td>jane.smith@example.com</td>
+                                        <td><span class="badge bg-info">Editor</span></td>
+                                        <td>Feb 10, 2023</td>
+                                        <td><span class="badge bg-success">Active</span></td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></button>
+                                                <button class="btn btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://via.placeholder.com/40" class="rounded-circle me-2" alt="">
+                                                <div>Michael Johnson</div>
+                                            </div>
+                                        </td>
+                                        <td>michael.j@example.com</td>
+                                        <td><span class="badge bg-secondary">User</span></td>
+                                        <td>Mar 5, 2023</td>
+                                        <td><span class="badge bg-success">Active</span></td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></button>
+                                                <button class="btn btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://via.placeholder.com/40" class="rounded-circle me-2" alt="">
+                                                <div>Sarah Williams</div>
+                                            </div>
+                                        </td>
+                                        <td>sarah.w@example.com</td>
+                                        <td><span class="badge bg-secondary">User</span></td>
+                                        <td>Apr 12, 2023</td>
+                                        <td><span class="badge bg-warning text-dark">Inactive</span></td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></button>
+                                                <button class="btn btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://via.placeholder.com/40" class="rounded-circle me-2" alt="">
+                                                <div>Alex Thompson</div>
+                                            </div>
+                                        </td>
+                                        <td>alex.t@example.com</td>
+                                        <td><span class="badge bg-secondary">User</span></td>
+                                        <td>May 20, 2023</td>
+                                        <td><span class="badge bg-success">Active</span></td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></button>
+                                                <button class="btn btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>6</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://via.placeholder.com/40" class="rounded-circle me-2" alt="">
+                                                <div>Emily Brown</div>
+                                            </div>
+                                        </td>
+                                        <td>emily.b@example.com</td>
+                                        <td><span class="badge bg-secondary">User</span></td>
+                                        <td>Jun 8, 2023</td>
+                                        <td><span class="badge bg-danger">Blocked</span></td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></button>
+                                                <button class="btn btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>7</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://via.placeholder.com/40" class="rounded-circle me-2" alt="">
+                                                <div>Robert Davis</div>
+                                            </div>
+                                        </td>
+                                        <td>robert.d@example.com</td>
+                                        <td><span class="badge bg-secondary">User</span></td>
+                                        <td>Jul 15, 2023</td>
+                                        <td><span class="badge bg-success">Active</span></td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></button>
+                                                <button class="btn btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <nav>
+                            <ul class="pagination justify-content-center mb-0">
+                                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                
+                <!-- Recipe List Preview -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                        <h5 class="mb-0"><i class="fas fa-utensils me-2"></i>Recent Recipes</h5>
+                        <button class="btn btn-sm btn-outline-primary">View All</button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th scope="col" width="60">#</th>
+                                        <th scope="col">Recipe</th>
+                                        <th scope="col">Author</th>
+                                        <th scope="col">Category</th>
+                                        <th scope="col">Date</th>
+                                        <th scope="col">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://via.placeholder.com/40" class="rounded me-2" alt="">
+                                                <div>Homemade Pizza</div>
+                                            </div>
+                                        </td>
+                                        <td>Chef John</td>
+                                        <td><span class="badge bg-light text-dark">Dinner</span></td>
+                                        <td>May 12, 2023</td>
+                                        <td><span class="badge bg-success">Published</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://via.placeholder.com/40" class="rounded me-2" alt="">
+                                                <div>Chocolate Cake</div>
+                                            </div>
+                                        </td>
+                                        <td>Baker Sarah</td>
+                                        <td><span class="badge bg-light text-dark">Desserts</span></td>
+                                        <td>May 10, 2023</td>
+                                        <td><span class="badge bg-success">Published</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://via.placeholder.com/40" class="rounded me-2" alt="">
+                                                <div>Vegetable Stir Fry</div>
+                                            </div>
+                                        </td>
+                                        <td>Healthy Cook Tim</td>
+                                        <td><span class="badge bg-light text-dark">Vegetarian</span></td>
+                                        <td>May 8, 2023</td>
+                                        <td><span class="badge bg-success">Published</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column -->
+            <div class="col-lg-4">
+                <!-- Website Stats -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Website Statistics</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Daily Visitors</span>
+                                <span class="text-primary">1,245</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: 65%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Page Views</span>
+                                <span class="text-success">4,782</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Bounce Rate</span>
+                                <span class="text-warning">36.5%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: 36.5%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Avg. Time on Site</span>
+                                <span class="text-info">3m 25s</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: 55%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-0">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Conversion Rate</span>
+                                <span class="text-danger">2.8%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-danger" role="progressbar" style="width: 28%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white text-center">
+                        <a href="#" class="text-decoration-none">View Detailed Analytics</a>
+                    </div>
+                </div>
+                
+                <!-- User Activity -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="fas fa-user-clock me-2"></i>Latest User Activity</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item px-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="activity-icon rounded-circle me-3 bg-success-subtle text-success p-2">
+                                        <i class="fas fa-user-plus"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0">New user <strong>Emma Wilson</strong> registered</p>
+                                        <small class="text-muted">10 minutes ago</small>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="list-group-item px-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="activity-icon rounded-circle me-3 bg-primary-subtle text-primary p-2">
+                                        <i class="fas fa-upload"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0"><strong>John Doe</strong> uploaded a new recipe</p>
+                                        <small class="text-muted">1 hour ago</small>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="list-group-item px-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="activity-icon rounded-circle me-3 bg-danger-subtle text-danger p-2">
+                                        <i class="fas fa-heart"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0"><strong>Sarah Smith</strong> favorited 3 recipes</p>
+                                        <small class="text-muted">2 hours ago</small>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="list-group-item px-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="activity-icon rounded-circle me-3 bg-info-subtle text-info p-2">
+                                        <i class="fas fa-comment"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0"><strong>Michael Johnson</strong> commented on a recipe</p>
+                                        <small class="text-muted">3 hours ago</small>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="list-group-item px-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="activity-icon rounded-circle me-3 bg-warning-subtle text-warning p-2">
+                                        <i class="fas fa-edit"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0"><strong>Chef Maria</strong> updated her profile</p>
+                                        <small class="text-muted">5 hours ago</small>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-footer bg-white text-center">
+                        <a href="#" class="text-decoration-none">View All Activity</a>
+                    </div>
+                </div>
+                
+                <!-- System Status -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="fas fa-server me-2"></i>System Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Server Load</span>
+                                <span class="text-success">Healthy (23%)</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 23%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Database Size</span>
+                                <span class="text-warning">Moderate (68%)</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: 68%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Memory Usage</span>
+                                <span class="text-primary">Normal (45%)</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: 45%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <div>
+                                <i class="fas fa-circle text-success me-1"></i>
+                                <small>System Online</small>
+                            </div>
+                            <div>
+                                <small>Last update: 5 minutes ago</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,363 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 20px;
+    }
+    
+    .top-item {
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        transition: all 0.2s;
+    }
+    
+    .top-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .cuisine-badge {
+        font-size: 0.85rem;
+        padding: 5px 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Analytics Dashboard</h1>
+        <div>
+            <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-download fa-sm text-white-50 me-1"></i> Export Report
+            </a>
+        </div>
+    </div>
+
+    <!-- Recipe Stats Row -->
+    <div class="row mb-4">
+        <!-- Recipe by Cuisine Chart -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card dashboard-card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recipes by Cuisine Type</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="cuisineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recipe Trend Chart -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card dashboard-card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recipe Creation Trend (Last 6 Months)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="recipeTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Recipes Row -->
+    <div class="row mb-4">
+        <!-- Top Liked Recipes -->
+        <div class="col-xl-6 col-lg-6 mb-4">
+            <div class="card dashboard-card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Most Liked Recipes</h6>
+                </div>
+                <div class="card-body">
+                    {% if top_liked_recipes %}
+                        {% for recipe in top_liked_recipes %}
+                            <div class="top-item bg-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0"><a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}" target="_blank">{{ recipe.title }}</a></h6>
+                                        <small class="text-muted">by {{ recipe.author_name }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="mb-1">
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-heart me-1"></i> {{ recipe.likes_count }} likes
+                                            </span>
+                                        </div>
+                                        <div>
+                                            {% if recipe.cuisine_type == 'International' %}
+                                                <span class="badge bg-success cuisine-badge">
+                                                    <i class="fas fa-globe-americas me-1"></i> {{ recipe.cuisine_type }}
+                                                </span>
+                                            {% elif recipe.cuisine_type == 'Luzon' %}
+                                                <span class="badge bg-primary cuisine-badge">
+                                                    <i class="fas fa-map-marker-alt me-1"></i> {{ recipe.cuisine_type }}
+                                                </span>
+                                            {% elif recipe.cuisine_type == 'Visayas' %}
+                                                <span class="badge bg-danger cuisine-badge">
+                                                    <i class="fas fa-map-marker-alt me-1"></i> {{ recipe.cuisine_type }}
+                                                </span>
+                                            {% elif recipe.cuisine_type == 'Mindanao' %}
+                                                <span class="badge bg-warning text-dark cuisine-badge">
+                                                    <i class="fas fa-map-marker-alt me-1"></i> {{ recipe.cuisine_type }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary cuisine-badge">
+                                                    <i class="fas fa-utensils me-1"></i> {{ recipe.cuisine_type }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-heart-broken fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No recipes with likes found.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Commented Recipes -->
+        <div class="col-xl-6 col-lg-6 mb-4">
+            <div class="card dashboard-card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Most Commented Recipes</h6>
+                </div>
+                <div class="card-body">
+                    {% if top_commented_recipes %}
+                        {% for recipe in top_commented_recipes %}
+                            <div class="top-item bg-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0"><a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}" target="_blank">{{ recipe.title }}</a></h6>
+                                        <small class="text-muted">by {{ recipe.author_name }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="mb-1">
+                                            <span class="badge bg-primary">
+                                                <i class="fas fa-comment me-1"></i> {{ recipe.comments_count }} comments
+                                            </span>
+                                        </div>
+                                        <div>
+                                            {% if recipe.cuisine_type == 'International' %}
+                                                <span class="badge bg-success cuisine-badge">
+                                                    <i class="fas fa-globe-americas me-1"></i> {{ recipe.cuisine_type }}
+                                                </span>
+                                            {% elif recipe.cuisine_type == 'Luzon' %}
+                                                <span class="badge bg-primary cuisine-badge">
+                                                    <i class="fas fa-map-marker-alt me-1"></i> {{ recipe.cuisine_type }}
+                                                </span>
+                                            {% elif recipe.cuisine_type == 'Visayas' %}
+                                                <span class="badge bg-danger cuisine-badge">
+                                                    <i class="fas fa-map-marker-alt me-1"></i> {{ recipe.cuisine_type }}
+                                                </span>
+                                            {% elif recipe.cuisine_type == 'Mindanao' %}
+                                                <span class="badge bg-warning text-dark cuisine-badge">
+                                                    <i class="fas fa-map-marker-alt me-1"></i> {{ recipe.cuisine_type }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary cuisine-badge">
+                                                    <i class="fas fa-utensils me-1"></i> {{ recipe.cuisine_type }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-comments-slash fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No recipes with comments found.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Trend Chart -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12">
+            <div class="card dashboard-card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">User Registration Trend (Last 6 Months)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="userTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Cuisine Chart
+        const cuisineData = {{ cuisine_data|tojson }};
+        const cuisineLabels = cuisineData.map(item => item.cuisine_type);
+        const cuisineCounts = cuisineData.map(item => item.count);
+        
+        const cuisineColors = cuisineLabels.map(cuisine => {
+            switch(cuisine) {
+                case 'International': return '#28a745'; // Green
+                case 'Luzon': return '#007bff'; // Blue
+                case 'Visayas': return '#dc3545'; // Red
+                case 'Mindanao': return '#ffc107'; // Yellow
+                default: return '#6c757d'; // Gray
+            }
+        });
+        
+        const cuisineChart = new Chart(
+            document.getElementById('cuisineChart'),
+            {
+                type: 'pie',
+                data: {
+                    labels: cuisineLabels,
+                    datasets: [{
+                        data: cuisineCounts,
+                        backgroundColor: cuisineColors,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        );
+        
+        // Recipe Trend Chart
+        const monthlyRecipes = {{ monthly_recipes|tojson }};
+        const recipeMonths = monthlyRecipes.map(item => {
+            const [year, month] = item.month.split('-');
+            return new Date(year, month - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        });
+        const recipeCounts = monthlyRecipes.map(item => item.count);
+        
+        const recipeTrendChart = new Chart(
+            document.getElementById('recipeTrendChart'),
+            {
+                type: 'line',
+                data: {
+                    labels: recipeMonths,
+                    datasets: [{
+                        label: 'New Recipes',
+                        data: recipeCounts,
+                        borderColor: '#4e73df',
+                        backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        );
+        
+        // User Trend Chart
+        const monthlyUsers = {{ monthly_users|tojson }};
+        const userMonths = monthlyUsers.map(item => {
+            const [year, month] = item.month.split('-');
+            return new Date(year, month - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        });
+        const userCounts = monthlyUsers.map(item => item.count);
+        
+        const userTrendChart = new Chart(
+            document.getElementById('userTrendChart'),
+            {
+                type: 'bar',
+                data: {
+                    labels: userMonths,
+                    datasets: [{
+                        label: 'New Users',
+                        data: userCounts,
+                        backgroundColor: '#36b9cc',
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            }
+        );
+    });
+</script>
+{% endblock %} 

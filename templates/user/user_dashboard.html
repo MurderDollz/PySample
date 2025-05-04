@@ -1,0 +1,2527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{{ title }}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background-color: #f8f9fc;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        /* Fix for modal-related issues */
+        body.modal-open {
+            overflow: auto !important;
+            padding-right: 0 !important;
+        }
+        
+        .modal-backdrop.show {
+            opacity: 0.5;
+        }
+        
+        /* Card styles */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            background-color: #fff;
+            padding: 16px 20px;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .card-footer {
+            background-color: #f8f9fc;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            padding: 16px 20px;
+        }
+        
+        /* Recipe card specific styles */
+        .card-img-top {
+            transition: all 0.5s ease;
+            width: 100%;
+            object-position: center;
+            height: auto;
+        }
+        
+        .card:hover .card-img-top {
+            transform: scale(1.03);
+        }
+        
+        .list-group-item {
+            border: none;
+            border-radius: 8px !important;
+            margin-bottom: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .list-group-item:hover {
+            background-color: #f0f0f0 !important;
+        }
+        
+        .list-group-item i {
+            transition: all 0.2s ease;
+        }
+        
+        .list-group-item:hover i {
+            transform: scale(1.2);
+        }
+        
+        /* Button styles */
+        .btn {
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .btn-outline-danger:hover {
+            background-color: #ffebee;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: #e3f2fd;
+        }
+        
+        .btn-outline-secondary:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .btn-outline-success:hover {
+            background-color: #e8f5e9;
+        }
+        
+        /* Text styles */
+        .fw-medium {
+            font-weight: 500;
+        }
+        
+        .card-header h4 {
+            font-size: 1.5rem;
+            line-height: 1.3;
+            color: #333;
+        }
+        
+        /* Badge styles */
+        .badge {
+            font-weight: 500;
+            padding: 0.5em 0.8em;
+            border-radius: 30px;
+        }
+        
+        /* Recipe metadata styles */
+        .recipe-metadata {
+            display: flex;
+            margin: 0 16px 16px;
+            color: #8e8e8e;
+            font-size: 12px;
+        }
+        
+        .recipe-metadata-item {
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .recipe-metadata-item i {
+            margin-right: 4px;
+        }
+        
+        /* Recipe card styles */
+        .recipe-card {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .recipe-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            transition: all 0.3s;
+        }
+        
+        .recipe-card:hover img {
+            transform: scale(1.05);
+        }
+        
+        .recipe-details {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 15px;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0));
+            color: #fff;
+        }
+        
+        .recipe-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .recipe-meta {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        /* Recent activity styles */
+        .activity-item {
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f1f3f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+        }
+        
+        .activity-content {
+            flex: 1;
+            padding-left: 15px;
+        }
+        
+        .activity-title {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+        
+        .activity-time {
+            font-size: 0.8rem;
+            color: #adb5bd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid p-0">
+        <!-- Navigation Bar -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+            <div class="container">
+                <a class="navbar-brand fw-bold text-primary" href="{{ url_for('user_dashboard') }}">Recipe Blog</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{{ url_for('user_dashboard') }}">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('discover') }}">Discover</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('saved_recipes') }}">Saved</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('following') }}">Following</a>
+                        </li>
+                    </ul>
+                    <div class="d-flex align-items-center">
+                        <button class="btn btn-sm btn-primary me-3" data-bs-toggle="modal" data-bs-target="#createRecipeModal">
+                            <i class="fas fa-plus-circle me-1"></i> Share a Recipe
+                        </button>
+                        <div class="position-relative me-3">
+                            <input type="text" id="searchInput" class="form-control rounded-pill" placeholder="Search recipes and users...">
+                            <div id="searchResults" class="position-absolute w-100 mt-1 shadow-lg bg-white rounded-3 d-none" style="z-index: 1050; max-height: 400px; overflow-y: auto;"></div>
+                        </div>
+                        <div class="dropdown">
+                            <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                                {% if current_user and current_user.profile_pic %}
+                                <img src="{{ url_for('static', filename=current_user.profile_pic) }}" class="rounded-circle" width="32" height="32" alt="Profile">
+                                {% else %}
+                                <img src="{{ url_for('static', filename='images/default-avatar.svg') }}" class="rounded-circle" width="32" height="32" alt="Profile">
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <li><a class="dropdown-item" href="{{ url_for('user_profile') }}">Profile</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('user_settings') }}">Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <div class="container py-4">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+                    
+            <!-- Recipe Feed -->
+            <div class="row">
+                <div class="col-lg-8">
+                    {% if recipes %}
+                        {% for recipe in recipes %}
+                        <!-- Recipe Post - Modern Card Style -->
+                        <div class="card shadow-sm mb-5">
+                            <div class="card-header bg-white p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 class="mb-0 fw-bold">{{ recipe.title }}</h4>
+                                        {% if recipe.cuisine_type %}
+                                        <small class="text-muted">{{ recipe.cuisine_type }} Cuisine</small>
+                                        {% endif %}
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-link text-dark p-0" data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            {% if recipe.user_id == session.user_id %}
+                                            <li><a class="dropdown-item edit-recipe-btn" href="#" data-bs-toggle="modal" data-bs-target="#editRecipeModal" data-recipe-id="{{ recipe.id }}"><i class="fas fa-edit me-2"></i>Edit Recipe</a></li>
+                                            <li><a class="dropdown-item delete-recipe-btn" href="#" data-recipe-id="{{ recipe.id }}"><i class="fas fa-trash me-2"></i>Delete Recipe</a></li>
+                                            {% else %}
+                                            <li><a class="dropdown-item" href="#"><i class="fas fa-flag me-2"></i>Report Post</a></li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Recipe Image -->
+                            <div class="position-relative">
+                                {% if recipe.photo_path %}
+                                <img src="{{ url_for('static', filename=recipe.photo_path) }}" 
+                                     class="card-img-top" alt="{{ recipe.title }}"
+                                     style="max-height: 500px; object-fit: cover;">
+                                {% else %}
+                                <img src="{{ url_for('static', filename='images/default-recipe.jpg') }}" 
+                                     class="card-img-top" alt="{{ recipe.title }}"
+                                     style="max-height: 500px; object-fit: cover;">
+                                {% endif %}
+                                
+                                <!-- Recipe Quick Info Overlay -->
+                                <div class="position-absolute bottom-0 start-0 w-100 bg-gradient-dark p-3 text-white" style="background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0) 150px);">
+                                    <div class="d-flex justify-content-between align-items-end">
+                                        <div>
+                                            {% if recipe.cuisine_type %}
+                                            <span class="badge bg-secondary me-2"><i class="fas fa-globe-americas me-1"></i> {{ recipe.cuisine_type }}</span>
+                                            {% endif %}
+                                            {% if recipe.prep_time %}
+                                            <span class="badge bg-light text-dark me-2"><i class="far fa-clock me-1"></i> {{ recipe.prep_time }} mins</span>
+                                            {% endif %}
+                                            {% if recipe.calories %}
+                                            <span class="badge bg-light text-dark me-2"><i class="fas fa-fire me-1"></i> {{ recipe.calories }} cal</span>
+                                            {% endif %}
+                                            {% if recipe.servings %}
+                                            <span class="badge bg-light text-dark"><i class="fas fa-users me-1"></i> Serves {{ recipe.servings }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body">
+                                <!-- Author Info -->
+                                <div class="d-flex align-items-center mb-3">
+                                    {% if recipe.profile_pic %}
+                                    <img src="{{ url_for('static', filename=recipe.profile_pic) }}" 
+                                         class="rounded-circle me-2" alt="User profile" 
+                                         style="width: 40px; height: 40px; object-fit: cover;"
+                                         data-user-id="{{ recipe.user_id }}">
+                                    {% else %}
+                                    <img src="{{ url_for('static', filename='images/default-avatar.svg') }}" 
+                                         class="rounded-circle me-2" alt="User profile" 
+                                         style="width: 40px; height: 40px; object-fit: cover;"
+                                         data-user-id="{{ recipe.user_id }}">
+                                    {% endif %}
+                                    <div>
+                                        <p class="mb-0 fw-medium" style="cursor: pointer;" data-user-id="{{ recipe.user_id }}">{{ recipe.first_name }} {{ recipe.last_name }}</p>
+                                        <p class="mb-0 text-muted small">{{ recipe.created_at.strftime('%b %d, %Y') if recipe.created_at else 'recently' }}</p>
+                                    </div>
+                                </div>
+                                
+                                <hr class="my-3">
+                                
+                                <!-- Recipe Description -->
+                                {% if recipe.description %}
+                                <p class="card-text mb-3">{{ recipe.description }}</p>
+                                {% endif %}
+                                
+                                <!-- Interactive Buttons -->
+                                <div class="d-flex justify-content-between align-items-center border-top border-bottom py-3">
+                                    <div>
+                                        <button class="btn btn-outline-danger me-2 like-btn" data-recipe-id="{{ recipe.id }}" data-liked="{{ 'true' if recipe.user_has_liked else 'false' }}">
+                                            <i class="{{ 'fas' if recipe.user_has_liked else 'far' }} fa-heart me-1"></i>
+                                            <span id="likes-count-{{ recipe.id }}">{{ recipe.likes_count if recipe.likes_count else 0 }}</span>
+                                        </button>
+                                        <button class="btn btn-outline-primary me-2 comment-btn" data-bs-toggle="collapse" data-bs-target="#comments{{ recipe.id }}">
+                                            <i class="far fa-comment me-1"></i>
+                                            <span>{{ recipe.comments_count if recipe.comments_count else 0 }}</span>
+                                        </button>
+                                        <button class="btn btn-outline-secondary share-btn" data-recipe-id="{{ recipe.id }}" data-recipe-title="{{ recipe.title }}">
+                                            <i class="far fa-paper-plane me-1"></i> Share
+                                        </button>
+                                    </div>
+                                    <button class="btn btn-outline-success save-btn" data-recipe-id="{{ recipe.id }}" data-saved="{{ 'true' if recipe.user_has_saved else 'false' }}">
+                                        <i class="{{ 'fas' if recipe.user_has_saved else 'far' }} fa-bookmark me-1"></i>
+                                        {{ 'Saved' if recipe.user_has_saved else 'Save' }}
+                                    </button>
+                                </div>
+                                
+                                <!-- View Recipe Details Button -->
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#recipe{{ recipe.id }}Details">
+                                        <i class="fas fa-utensils me-2"></i>View Full Recipe
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Recipe Details (Collapsible) -->
+                            <div class="collapse" id="recipe{{ recipe.id }}Details">
+                                <div class="card-body border-top pt-4">
+                                    {% if recipe.cuisine_type %}
+                                    <div class="text-center mb-3">
+                                        <span class="badge bg-primary px-3 py-2"><i class="fas fa-globe-americas me-1"></i> {{ recipe.cuisine_type }} Cuisine</span>
+                                    </div>
+                                    {% endif %}
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h5 class="card-title fw-bold mb-3"><i class="fas fa-list-ul me-2 text-primary"></i>Ingredients</h5>
+                                            <ul class="list-group list-group-flush mb-4">
+                                                {% for ingredient in recipe.ingredients.split('\n') %}
+                                                    {% if ingredient.strip() %}
+                                                    <li class="list-group-item bg-light">
+                                                        <i class="fas fa-circle me-2 text-success"></i>{{ ingredient }}
+                                                    </li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5 class="card-title fw-bold mb-3"><i class="fas fa-tasks me-2 text-primary"></i>Instructions</h5>
+                                            <ol class="list-group list-group-numbered">
+                                                {% for step in recipe.instructions.split('\n') %}
+                                                    {% if step.strip() %}
+                                                    <li class="list-group-item bg-light">{{ step }}</li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Comment Section (Collapsible) -->
+                            <div class="collapse" id="comments{{ recipe.id }}">
+                                <div class="card-footer bg-light p-3">
+                                    <h5 class="mb-3"><i class="far fa-comments me-2"></i>Comments</h5>
+                                    <div class="comments-container mb-3" id="comments-container-{{ recipe.id }}">
+                                        <!-- Comments will be loaded here via AJAX -->
+                                        {% if recipe.comments_count and recipe.comments_count > 0 %}
+                                            <div class="text-center my-2">
+                                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                <small class="text-muted ms-2">Loading comments...</small>
+                                            </div>
+                                        {% else %}
+                                            <p class="text-muted text-center my-3">No comments yet. Be the first to comment!</p>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Comment Input -->
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="Add a comment..." id="comment-input-{{ recipe.id }}">
+                                        <button class="btn btn-primary post-comment-btn" data-recipe-id="{{ recipe.id }}">Post</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body text-center py-5">
+                                <i class="fas fa-utensils mb-3" style="font-size: 3rem; color: #ccc;"></i>
+                                <h5>No recipes yet!</h5>
+                                <p class="text-muted">Follow other cooks to see their recipes here.</p>
+                            </div>
+                        </div>
+                    {% endif %}
+            </div>
+            
+                <div class="col-lg-4">
+                    <!-- Trending Recipes -->
+            <div class="card shadow-sm mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Trending Recipes</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                {% if trending_recipes %}
+                                    {% for recipe in trending_recipes %}
+                                    <li class="list-group-item">
+                                        <div class="d-flex align-items-center">
+                                            {% if recipe.photo_path %}
+                                            <img src="{{ url_for('static', filename=recipe.photo_path) }}" 
+                                                 class="rounded me-3" alt="Recipe thumbnail" 
+                                                 style="width: 60px; height: 60px; object-fit: cover;">
+                                            {% else %}
+                                            <img src="{{ url_for('static', filename='images/default-recipe.jpg') }}" 
+                                                 class="rounded me-3" alt="Recipe thumbnail" 
+                                                 style="width: 60px; height: 60px; object-fit: cover;">
+                                            {% endif %}
+                        <div>
+                                                <h6 class="mb-1">{{ recipe.title }}</h6>
+                                                <small class="text-muted">{{ recipe.likes_count }} likes · {{ recipe.comments_count }} comments</small>
+                        </div>
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                {% else %}
+                                    <li class="list-group-item py-4 text-center">
+                                        <p class="text-muted mb-0">No trending recipes available yet.</p>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        <div class="card-footer bg-white text-center">
+                            <a href="{{ url_for('discover') }}" class="text-decoration-none">View More</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Your Collections -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Your Collections</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                {% if collections %}
+                                    {% for collection in collections %}
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <i class="fas {{ collection.icon_class|default('fa-list') }} me-3 text-primary" style="font-size: 1.5rem;"></i>
+                        <div>
+                                            <h6 class="mb-0">{{ collection.name }}</h6>
+                                            <small class="text-muted">{{ collection.recipe_count }} recipes</small>
+                        </div>
+                                    </li>
+                                    {% endfor %}
+                                {% else %}
+                                    <li class="list-group-item py-4 text-center">
+                                        <div class="text-center py-3">
+                                            <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                                            <h5>Organize Your Recipes</h5>
+                                            <p class="text-muted">Save recipes to collections to easily find them later.</p>
+                                            <a href="{{ url_for('discover') }}" class="btn btn-primary mt-2">Discover Recipes</a>
+                                        </div>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                    </div>
+                        <div class="card-footer bg-white text-center">
+                            <a href="#" class="text-decoration-none">View All Collections</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Suggested Cooks -->
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h5 class="mb-0">Suggested Cooks to Follow</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                {% if suggested_users %}
+                                    {% for user in suggested_users %}
+                                    <li class="list-group-item d-flex align-items-center p-3">
+                                        {% if user.profile_pic %}
+                                        <img src="{{ url_for('static', filename=user.profile_pic) }}" 
+                                             class="rounded-circle me-3" alt="User profile" 
+                                             style="width: 40px; height: 40px; object-fit: cover;">
+                                        {% else %}
+                                        <img src="{{ url_for('static', filename='images/default-avatar.svg') }}" 
+                                             class="rounded-circle me-3" alt="User profile" 
+                                             style="width: 40px; height: 40px; object-fit: cover;">
+                                        {% endif %}
+                                        <div>
+                                            <h6 class="mb-0">{{ user.first_name }} {{ user.last_name }}</h6>
+                                            <small class="text-muted">{{ user.followers_count }} followers</small>
+                    </div>
+                                        <button class="btn btn-sm btn-primary ms-auto follow-btn" data-user-id="{{ user.id }}">Follow</button>
+                                    </li>
+                                    {% endfor %}
+                                {% else %}
+                                    <li class="list-group-item py-4 text-center">
+                                        <div class="text-center py-3">
+                                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                            <h5>Connect with Top Chefs</h5>
+                                            <p class="text-muted">Discover talented chefs and get inspired by their recipes.</p>
+                                            <a href="{{ url_for('discover') }}" class="btn btn-primary mt-2">Explore Chefs</a>
+                                        </div>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                </div>
+                        <div class="card-footer bg-white text-center">
+                            <a href="{{ url_for('discover') }}" class="text-decoration-none">Find More Cooks</a>
+            </div>
+        </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+    <!-- Create Recipe Modal -->
+    <div class="modal fade" id="createRecipeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Share a Recipe</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url_for('create_recipe') }}" method="POST" enctype="multipart/form-data" id="createRecipeForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Recipe Title</label>
+                            <input type="text" class="form-control" id="title" name="title" placeholder="What are you cooking?" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Tell us about your recipe..."></textarea>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="prep_time" class="form-label">Prep Time (minutes)</label>
+                                <input type="number" class="form-control" id="prep_time" name="prep_time" min="0">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="cook_time" class="form-label">Cook Time (minutes)</label>
+                                <input type="number" class="form-control" id="cook_time" name="cook_time" min="0">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="servings" class="form-label">Servings</label>
+                                <input type="number" class="form-control" id="servings" name="servings" min="1">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ingredients" class="form-label">Ingredients</label>
+                            <textarea class="form-control" id="ingredients" name="ingredients" rows="5" placeholder="Add each ingredient on a new line (will display as bullet points)" required></textarea>
+                            <small class="text-muted">Each line will be displayed as a bullet point</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="instructions" class="form-label">Instructions</label>
+                            <textarea class="form-control" id="instructions" name="instructions" rows="5" placeholder="Add each step on a new line (will display as numbered steps)" required></textarea>
+                            <small class="text-muted">Each line will be displayed as a numbered step</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="calories" class="form-label">Calories (optional)</label>
+                            <input type="number" class="form-control" id="calories" name="calories" min="0">
+                        </div>
+                        <div class="mb-3">
+                            <label for="cuisine_type" class="form-label">Cuisine Type</label>
+                            <select class="form-control" id="cuisine_type" name="cuisine_type" required>
+                                <option value="" disabled selected>Select cuisine type</option>
+                                <option value="International">International</option>
+                                <option value="Luzon">Luzon Cuisine</option>
+                                <option value="Visayas">Visayas Cuisine</option>
+                                <option value="Mindanao">Mindanao Cuisine</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="photo" class="form-label">Add Photos</label>
+                            <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Recipe Privacy</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="privacy" id="publicRecipe" value="public" checked>
+                                <label class="form-check-label" for="publicRecipe">
+                                    Public - Anyone can see this recipe
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="privacy" id="friendsRecipe" value="friends">
+                                <label class="form-check-label" for="friendsRecipe">
+                                    Friends - Only people you follow can see this recipe
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="privacy" id="privateRecipe" value="private">
+                                <label class="form-check-label" for="privateRecipe">
+                                    Private - Only you can see this recipe
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="createRecipeForm" class="btn btn-primary">Share Recipe</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Share Recipe Modal -->
+    <div class="modal fade" id="shareModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                    <h5 class="modal-title">Share Recipe</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                    <p class="mb-3">Share this delicious recipe with your friends!</p>
+                    <div class="d-flex justify-content-center gap-3 mb-3">
+                        <button class="btn btn-outline-primary share-option" data-platform="facebook">
+                            <i class="fab fa-facebook-f me-2"></i>Facebook
+                        </button>
+                        <button class="btn btn-outline-info share-option" data-platform="twitter">
+                            <i class="fab fa-twitter me-2"></i>Twitter
+                        </button>
+                        <button class="btn btn-outline-success share-option" data-platform="whatsapp">
+                            <i class="fab fa-whatsapp me-2"></i>WhatsApp
+                        </button>
+                        </div>
+                    <div class="input-group mt-3">
+                        <input type="text" class="form-control" id="shareLink" readonly>
+                        <button class="btn btn-outline-secondary copy-link-btn" type="button">
+                            <i class="far fa-copy me-2"></i>Copy
+                        </button>
+                    </div>
+                </div>
+                </div>
+            </div>
+            </div>
+            
+    <!-- Edit Recipe Modal -->
+    <div class="modal fade" id="editRecipeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Recipe</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="/edit-recipe" method="POST" enctype="multipart/form-data" id="editRecipeForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="recipe_id" id="edit_recipe_id">
+                        <div class="mb-3">
+                            <label for="edit_title" class="form-label">Recipe Title</label>
+                            <input type="text" class="form-control" id="edit_title" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_description" class="form-label">Description</label>
+                            <textarea class="form-control" id="edit_description" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="edit_prep_time" class="form-label">Prep Time (minutes)</label>
+                                <input type="number" class="form-control" id="edit_prep_time" name="prep_time" min="0">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="edit_cook_time" class="form-label">Cook Time (minutes)</label>
+                                <input type="number" class="form-control" id="edit_cook_time" name="cook_time" min="0">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="edit_servings" class="form-label">Servings</label>
+                                <input type="number" class="form-control" id="edit_servings" name="servings" min="1">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_ingredients" class="form-label">Ingredients</label>
+                            <textarea class="form-control" id="edit_ingredients" name="ingredients" rows="5" required></textarea>
+                            <small class="text-muted">Each line will be displayed as a bullet point</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_instructions" class="form-label">Instructions</label>
+                            <textarea class="form-control" id="edit_instructions" name="instructions" rows="5" required></textarea>
+                            <small class="text-muted">Each line will be displayed as a numbered step</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_calories" class="form-label">Calories (optional)</label>
+                            <input type="number" class="form-control" id="edit_calories" name="calories" min="0">
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_cuisine_type" class="form-label">Cuisine Type</label>
+                            <select class="form-control" id="edit_cuisine_type" name="cuisine_type" required>
+                                <option value="" disabled selected>Select cuisine type</option>
+                                <option value="International">International</option>
+                                <option value="Luzon">Luzon Cuisine</option>
+                                <option value="Visayas">Visayas Cuisine</option>
+                                <option value="Mindanao">Mindanao Cuisine</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_photo" class="form-label">Change Photo (leave empty to keep current)</label>
+                            <input type="file" class="form-control" id="edit_photo" name="photo" accept="image/*">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Recipe Privacy</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="privacy" id="edit_publicRecipe" value="public">
+                                <label class="form-check-label" for="edit_publicRecipe">
+                                    Public - Anyone can see this recipe
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="privacy" id="edit_friendsRecipe" value="friends">
+                                <label class="form-check-label" for="edit_friendsRecipe">
+                                    Friends - Only people you follow can see this recipe
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="privacy" id="edit_privateRecipe" value="private">
+                                <label class="form-check-label" for="edit_privateRecipe">
+                                    Private - Only you can see this recipe
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="editRecipeForm" class="btn btn-primary">Update Recipe</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Recipe Confirmation Modal -->
+    <div class="modal fade" id="deleteRecipeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete Recipe</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this recipe? This action cannot be undone.</p>
+                    <form id="deleteRecipeForm" action="/delete-recipe" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="recipe_id" id="delete_recipe_id">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="deleteRecipeForm" class="btn btn-danger">Delete Recipe</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div class="modal fade" id="userProfileModal" tabindex="-1" aria-labelledby="userProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div id="profileModalLoader" class="text-center my-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Loading user profile...</p>
+                    </div>
+                    <div id="profileModalContent" style="display: none;">
+                        <img id="profileModalPic" src="" class="rounded-circle mb-3" alt="Profile Picture" style="width: 100px; height: 100px; object-fit: cover;">
+                        <h4 id="profileModalName" class="mb-1"></h4>
+                        <p id="profileModalLocation" class="text-muted mb-3"><i class="fas fa-map-marker-alt me-1"></i></p>
+                        <p id="profileModalBio" class="mb-4"></p>
+                        <div class="d-flex justify-content-center mb-3">
+                            <div class="me-4 text-center">
+                                <h5 id="profileModalRecipeCount">0</h5>
+                                <p class="text-muted mb-0">Recipes</p>
+                            </div>
+                            <div class="me-4 text-center">
+                                <h5 id="profileModalFollowers">0</h5>
+                                <p class="text-muted mb-0">Followers</p>
+                            </div>
+                            <div class="text-center">
+                                <h5 id="profileModalFollowing">0</h5>
+                                <p class="text-muted mb-0">Following</p>
+                            </div>
+                        </div>
+                        <button id="profileModalFollowBtn" class="btn btn-primary px-4">Follow</button>
+                    </div>
+                    <div id="profileModalError" class="alert alert-danger" style="display: none;">
+                        Failed to load user profile. Please try again.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container for notifications -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="toast-container"></div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- AJAX and Recipe Interactions -->
+    <script>
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const toastContainer = document.getElementById('toast-container');
+            const toastId = `toast-${Date.now()}`;
+            
+            const toastHtml = `
+                <div id="${toastId}" class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, {
+                delay: 3000
+            });
+            
+            toast.show();
+            
+            // Remove toast from DOM after it's hidden
+            toastElement.addEventListener('hidden.bs.toast', () => {
+                toastElement.remove();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Function to handle modal cleanup when closing
+            function setupModalCleanup(modalId) {
+                document.getElementById(modalId).addEventListener('hidden.bs.modal', function () {
+                    // Ensure body doesn't retain modal-open class and inline styles
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                    
+                    // Remove modal backdrop if it exists
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) backdrop.remove();
+                });
+            }
+            
+            // Apply modal cleanup to all modals
+            setupModalCleanup('createRecipeModal');
+            setupModalCleanup('shareModal');
+            setupModalCleanup('editRecipeModal');
+            setupModalCleanup('deleteRecipeModal');
+            setupModalCleanup('userProfileModal');
+            
+            // Add submit handler to edit recipe form
+            document.getElementById('editRecipeForm').addEventListener('submit', function(e) {
+                // Ensure CSRF token is properly set before submission
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
+                                 document.querySelector('input[name="csrf_token"]')?.value;
+                
+                if (!csrfToken) {
+                    e.preventDefault();
+                    showToast('CSRF token missing. Please refresh the page and try again.', 'danger');
+                    return false;
+                }
+                
+                // Make sure the form's CSRF token is up-to-date
+                this.querySelector('input[name="csrf_token"]').value = csrfToken;
+            });
+            
+            // Like button functionality
+            document.querySelectorAll('.like-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const recipeId = this.getAttribute('data-recipe-id');
+                    const isLiked = this.getAttribute('data-liked') === 'true';
+                    
+                    // Toggle heart icon
+                    if (isLiked) {
+                        this.querySelector('i').classList.remove('fas', 'text-danger');
+                        this.querySelector('i').classList.add('far');
+                        this.setAttribute('data-liked', 'false');
+                    } else {
+                        this.querySelector('i').classList.remove('far');
+                        this.querySelector('i').classList.add('fas', 'text-danger');
+                        this.setAttribute('data-liked', 'true');
+                    }
+                    
+                    // Send AJAX request to like/unlike
+                    fetch(`/recipe/${recipeId}/like`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-Token': document.querySelector('input[name="csrf_token"]').value
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update like count
+                            const likesCountSpan = document.getElementById(`likes-count-${recipeId}`);
+                            if (likesCountSpan) {
+                                likesCountSpan.textContent = data.likes_count;
+                            }
+                            
+                            // Log the action for debugging
+                            console.log(`Recipe ${recipeId} ${data.action}, count: ${data.likes_count}`);
+                            
+                            // Show a small toast notification
+                            showToast(data.action === 'liked' ? 'Recipe liked!' : 'Recipe unliked');
+                        } else {
+                            // Handle error - revert the UI change
+                            this.querySelector('i').classList.toggle('fas');
+                            this.querySelector('i').classList.toggle('far');
+                            this.querySelector('i').classList.toggle('text-danger');
+                            this.setAttribute('data-liked', isLiked ? 'true' : 'false');
+                            showToast('Error updating like status');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        // Revert the UI change on error
+                        this.querySelector('i').classList.toggle('fas');
+                        this.querySelector('i').classList.toggle('far');
+                        this.querySelector('i').classList.toggle('text-danger');
+                        this.setAttribute('data-liked', isLiked ? 'true' : 'false');
+                        showToast('Error updating like status');
+                    });
+                });
+            });
+            
+            // Delete Recipe button functionality
+            document.querySelectorAll('.delete-recipe-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const recipeId = this.getAttribute('data-recipe-id');
+                    document.getElementById('delete_recipe_id').value = recipeId;
+                    const deleteModal = new bootstrap.Modal(document.getElementById('deleteRecipeModal'));
+                    deleteModal.show();
+                });
+            });
+            
+            // Edit Recipe button functionality
+            document.querySelectorAll('.edit-recipe-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const recipeId = this.getAttribute('data-recipe-id');
+                    
+                    // Fetch recipe data to populate the edit form
+                    fetch(`/recipe/${recipeId}/data`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const recipe = data.recipe;
+                                
+                                // Populate form fields
+                                document.getElementById('edit_recipe_id').value = recipeId;
+                                document.getElementById('edit_title').value = recipe.title;
+                                document.getElementById('edit_description').value = recipe.description || '';
+                                document.getElementById('edit_prep_time').value = recipe.prep_time || '';
+                                document.getElementById('edit_cook_time').value = recipe.cook_time || '';
+                                document.getElementById('edit_servings').value = recipe.servings || '';
+                                document.getElementById('edit_ingredients').value = recipe.ingredients || '';
+                                document.getElementById('edit_instructions').value = recipe.instructions || '';
+                                document.getElementById('edit_calories').value = recipe.calories || '';
+                                
+                                // Ensure CSRF token is set correctly
+                                const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+                                document.querySelector('#editRecipeForm input[name="csrf_token"]').value = csrfToken;
+                                
+                                // Set cuisine type dropdown
+                                const cuisineSelect = document.getElementById('edit_cuisine_type');
+                                if (recipe.cuisine_type) {
+                                    // Find the option with matching value and select it
+                                    for (let i = 0; i < cuisineSelect.options.length; i++) {
+                                        if (cuisineSelect.options[i].value === recipe.cuisine_type) {
+                                            cuisineSelect.selectedIndex = i;
+                                            break;
+                                        }
+                                    }
+                                } else {
+                                    // Select "Other" by default if not set
+                                    for (let i = 0; i < cuisineSelect.options.length; i++) {
+                                        if (cuisineSelect.options[i].value === 'Other') {
+                                            cuisineSelect.selectedIndex = i;
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+                                // Set privacy radio button
+                                if (recipe.privacy) {
+                                    document.getElementById(`edit_${recipe.privacy}Recipe`).checked = true;
+                                } else {
+                                    document.getElementById('edit_publicRecipe').checked = true;
+                                }
+                                
+                                // Show the modal
+                                const editModal = new bootstrap.Modal(document.getElementById('editRecipeModal'));
+                                editModal.show();
+                            } else {
+                                showToast('Error loading recipe data');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showToast('Error loading recipe data');
+                        });
+                });
+            });
+            
+            // Save recipe functionality
+            document.querySelectorAll('.save-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const recipeId = this.getAttribute('data-recipe-id');
+                    const isSaved = this.getAttribute('data-saved') === 'true';
+                    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value || '';
+                    
+                    // Send AJAX request to save/unsave first
+                    fetch(`/recipe/${recipeId}/save`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-Token': csrfToken
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update UI based on server response to ensure sync
+                            const newSavedState = data.is_saved || false;
+                            
+                            // Update button appearance
+                            if (newSavedState) {
+                                this.querySelector('i').classList.remove('far');
+                                this.querySelector('i').classList.add('fas');
+                                this.setAttribute('data-saved', 'true');
+                                this.innerHTML = '<i class="fas fa-bookmark me-1"></i> Saved';
+                            } else {
+                                this.querySelector('i').classList.remove('fas');
+                                this.querySelector('i').classList.add('far');
+                                this.setAttribute('data-saved', 'false');
+                                this.innerHTML = '<i class="far fa-bookmark me-1"></i> Save';
+                            }
+                            
+                            // Show toast notification
+                            showToast(newSavedState ? 'Recipe saved successfully!' : 'Recipe removed from saved recipes');
+                        } else {
+                            throw new Error(data.error || 'Failed to update save status');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showToast('Error updating save status. Please try again.', 'danger');
+                    });
+                });
+            });
+            
+            // Comment functionality
+            document.querySelectorAll('.comment-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const recipeId = this.getAttribute('data-recipe-id') || 
+                                    this.closest('.card').querySelector('.like-btn').getAttribute('data-recipe-id');
+                    loadComments(recipeId);
+                });
+            });
+            
+            // Post comment functionality
+            document.querySelectorAll('.post-comment-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const recipeId = this.getAttribute('data-recipe-id');
+                    submitComment(recipeId);
+                });
+            });
+            
+            // Add event listener for Enter key in comment input fields
+            document.querySelectorAll('[id^="comment-input-"]').forEach(input => {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const recipeId = this.id.replace('comment-input-', '');
+                        submitComment(recipeId);
+                    }
+                });
+            });
+            
+            // Share recipe functionality
+            document.querySelectorAll('.share-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const recipeId = this.getAttribute('data-recipe-id');
+                    const recipeTitle = this.getAttribute('data-recipe-title');
+                    const shareModal = new bootstrap.Modal(document.getElementById('shareModal'));
+                    
+                    // Set share link
+                    document.getElementById('shareLink').value = `${window.location.origin}/recipe/${recipeId}`;
+                    
+                    // Open modal
+                    shareModal.show();
+                });
+            });
+            
+            // Copy link functionality
+            document.querySelector('.copy-link-btn').addEventListener('click', function() {
+                const shareLink = document.getElementById('shareLink');
+                shareLink.select();
+                document.execCommand('copy');
+                
+                // Change button text temporarily
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-check me-2"></i>Copied!';
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                }, 2000);
+            });
+            
+            // Social media share options
+            document.querySelectorAll('.share-option').forEach(button => {
+                button.addEventListener('click', function() {
+                    const platform = this.getAttribute('data-platform');
+                    const url = encodeURIComponent(document.getElementById('shareLink').value);
+                    const title = encodeURIComponent('Check out this delicious recipe!');
+                    
+                    let shareUrl;
+                    
+                    switch(platform) {
+                        case 'facebook':
+                            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+                            break;
+                        case 'twitter':
+                            shareUrl = `https://twitter.com/intent/tweet?text=${title}&url=${url}`;
+                            break;
+                        case 'whatsapp':
+                            shareUrl = `https://api.whatsapp.com/send?text=${title} ${url}`;
+                            break;
+                    }
+                    
+                    window.open(shareUrl, '_blank');
+                });
+            });
+            
+            // Function to handle comment submission
+            function submitComment(recipeId) {
+                const commentInput = document.querySelector(`#comment-input-${recipeId}`);
+                const commentText = commentInput.value.trim();
+                
+                if (!commentText) return;
+                
+                fetch(`/recipe/${recipeId}/comment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-Token': document.querySelector('input[name="csrf_token"]').value
+                    },
+                    body: JSON.stringify({ comment: commentText })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Clear input
+                        commentInput.value = '';
+                        
+                        // Add new comment to UI
+                        addCommentToUI(recipeId, data.comment);
+                        
+                        // Update comment count in the post
+                        const commentCountElem = document.querySelector(`button.comment-btn[data-recipe-id="${recipeId}"] span`);
+                        if (commentCountElem) {
+                            const currentCount = parseInt(commentCountElem.textContent) || 0;
+                            commentCountElem.textContent = currentCount + 1;
+                        }
+                        
+                        // Show success message
+                        showToast('Comment added successfully!');
+                    } else {
+                        throw new Error(data.error || 'Failed to add comment');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Failed to add comment. Please try again.');
+                });
+            }
+
+            // Function to handle comment reactions
+            function handleCommentReaction(commentId) {
+                const reactBtn = document.querySelector(`.react-btn[data-comment-id="${commentId}"]`);
+                if (!reactBtn) return;
+                
+                const reactionsCount = reactBtn.querySelector('.reactions-count');
+                const reactionIcon = reactBtn.querySelector('i');
+                const isReacted = reactBtn.getAttribute('data-reacted') === 'true';
+                
+                // Optimistically update UI
+                if (isReacted) {
+                    reactionIcon.className = 'far fa-heart';
+                    reactBtn.setAttribute('data-reacted', 'false');
+                    const count = parseInt(reactionsCount.textContent) || 0;
+                    if (count > 0) reactionsCount.textContent = count - 1;
+                } else {
+                    reactionIcon.className = 'fas fa-heart text-danger';
+                    reactBtn.setAttribute('data-reacted', 'true');
+                    const count = parseInt(reactionsCount.textContent) || 0;
+                    reactionsCount.textContent = count + 1;
+                }
+                
+                fetch(`/recipe/comment/${commentId}/react`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-Token': document.querySelector('input[name="csrf_token"]').value
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Update reaction count and icon with server data
+                        reactionsCount.textContent = data.reactions_count;
+                        
+                        if (data.reacted) {
+                            reactionIcon.className = 'fas fa-heart text-danger';
+                            reactBtn.setAttribute('data-reacted', 'true');
+                        } else {
+                            reactionIcon.className = 'far fa-heart';
+                            reactBtn.setAttribute('data-reacted', 'false');
+                        }
+                    } else {
+                        throw new Error(data.error || 'Failed to update reaction');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Revert UI changes on error
+                    if (isReacted) {
+                        reactionIcon.className = 'fas fa-heart text-danger';
+                        reactBtn.setAttribute('data-reacted', 'true');
+                    } else {
+                        reactionIcon.className = 'far fa-heart';
+                        reactBtn.setAttribute('data-reacted', 'false');
+                    }
+                    showToast('Failed to update reaction. Please try again.', 'danger');
+                });
+            }
+
+            // Function to load comments
+            function loadComments(recipeId) {
+                const commentsContainer = document.getElementById(`comments-container-${recipeId}`);
+                
+                // Show loading state
+                commentsContainer.innerHTML = `
+                    <div class="text-center my-2">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <small class="text-muted ms-2">Loading comments...</small>
+                    </div>
+                `;
+                
+                fetch(`/recipe/${recipeId}/comments`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-Token': document.querySelector('input[name="csrf_token"]').value
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        commentsContainer.innerHTML = '';
+                        
+                        if (data.comments && data.comments.length > 0) {
+                            data.comments.forEach(comment => {
+                                addCommentToUI(recipeId, comment);
+                            });
+                        } else {
+                            commentsContainer.innerHTML = `
+                                <p class="text-muted text-center my-3">No comments yet. Be the first to comment!</p>
+                            `;
+                        }
+                    } else {
+                        throw new Error(data.error || 'Failed to load comments');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    commentsContainer.innerHTML = `
+                        <div class="alert alert-danger text-center my-3">
+                            <p class="mb-0">Failed to load comments. Please try again.</p>
+                            <button class="btn btn-link text-danger p-0 mt-2" onclick="loadComments(${recipeId})">
+                                <i class="fas fa-sync-alt me-1"></i>Retry
+                            </button>
+                        </div>
+                    `;
+                });
+            }
+
+            // Load comments on DOMContentLoaded for visible recipes
+            document.querySelectorAll('.comment-btn').forEach(button => {
+                // Get the recipe ID
+                const recipeId = button.getAttribute('data-recipe-id');
+                if (recipeId) {
+                    // Check if the comments section is expanded
+                    const commentsSection = document.getElementById(`comments${recipeId}`);
+                    if (commentsSection && commentsSection.classList.contains('show')) {
+                        // Load comments if the section is visible
+                        loadComments(recipeId);
+                    }
+                }
+            });
+
+            // Function to add a comment to the UI
+            function addCommentToUI(recipeId, comment) {
+                const commentsContainer = document.getElementById(`comments-container-${recipeId}`);
+                
+                // Remove "no comments" message if it exists
+                const noCommentsMsg = commentsContainer.querySelector('p.text-muted');
+                if (noCommentsMsg) {
+                    commentsContainer.innerHTML = '';
+                }
+                
+                // Create comment element
+                const commentElement = document.createElement('div');
+                commentElement.className = 'comment d-flex align-items-start mb-3';
+                commentElement.innerHTML = `
+                    <div class="me-2">
+                        <img src="${comment.user_profile_pic ? '/static/' + comment.user_profile_pic : '/static/images/default-avatar.svg'}" 
+                             class="rounded-circle" alt="${comment.user_name}" 
+                             style="width: 32px; height: 32px; object-fit: cover;">
+                    </div>
+                    <div class="comment-content bg-light rounded-3 px-3 py-2 flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong class="me-2">${comment.user_name}</strong>
+                            <small class="text-muted">${comment.created_at}</small>
+                        </div>
+                        <p class="mb-1">${comment.text}</p>
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-sm btn-link text-decoration-none p-0 react-btn" 
+                                    data-comment-id="${comment.id}"
+                                    data-reacted="${comment.user_has_reacted || 'false'}">
+                                <i class="${comment.user_has_reacted ? 'fas text-danger' : 'far'} fa-heart"></i>
+                                <span class="reactions-count">${comment.reactions_count || 0}</span>
+                            </button>
+                            <button class="btn btn-sm btn-link text-decoration-none p-0 reply-btn ms-2" 
+                                    data-comment-id="${comment.id}"
+                                    data-username="${comment.user_name}">
+                                <i class="far fa-comment"></i> Reply
+                            </button>
+                            <div class="replies-count ms-2" style="display: ${comment.replies_count > 0 ? 'block' : 'none'}">
+                                <button class="btn btn-sm btn-link text-decoration-none p-0 view-replies-btn" 
+                                        data-comment-id="${comment.id}"
+                                        data-replies-visible="false"
+                                        data-replies-count="${comment.replies_count}">
+                                    <i class="fas fa-chevron-down"></i> View ${comment.replies_count} ${comment.replies_count === 1 ? 'reply' : 'replies'}
+                                </button>
+                            </div>
+                        </div>
+                        <div id="replies-${comment.id}" class="replies-container mt-2" style="display: none;"></div>
+                    </div>
+                `;
+                
+                commentsContainer.insertBefore(commentElement, commentsContainer.firstChild);
+                addCommentEventListeners(commentElement, recipeId);
+            }
+
+            // Add event listeners for reactions
+            function addCommentEventListeners(commentElement, recipeId) {
+                // React button functionality
+                const reactBtn = commentElement.querySelector('.react-btn');
+                if (reactBtn) {
+                    reactBtn.addEventListener('click', function() {
+                        const commentId = this.getAttribute('data-comment-id');
+                        handleCommentReaction(commentId);
+                    });
+                }
+
+                // Reply button functionality
+                const replyBtn = commentElement.querySelector('.reply-btn');
+                if (replyBtn) {
+                    replyBtn.addEventListener('click', function() {
+                        const commentId = this.getAttribute('data-comment-id');
+                        const username = this.getAttribute('data-username');
+                        showReplyInput(commentId, username, recipeId);
+                    });
+                }
+
+                // View replies button functionality
+                const viewRepliesBtn = commentElement.querySelector('.view-replies-btn');
+                if (viewRepliesBtn) {
+                    const repliesCount = parseInt(viewRepliesBtn.getAttribute('data-replies-count')) || 0;
+                    viewRepliesBtn.addEventListener('click', function() {
+                        const commentId = this.getAttribute('data-comment-id');
+                        const repliesContainer = document.getElementById(`replies-${commentId}`);
+                        const isVisible = this.getAttribute('data-replies-visible') === 'true';
+                        
+                        if (isVisible) {
+                            // Hide replies
+                            repliesContainer.style.display = 'none';
+                            this.innerHTML = `<i class="fas fa-chevron-down"></i> View ${repliesCount} ${repliesCount === 1 ? 'reply' : 'replies'}`;
+                            this.setAttribute('data-replies-visible', 'false');
+                        } else {
+                            // Show replies
+                            repliesContainer.style.display = 'block';
+                            loadReplies(commentId, recipeId);
+                            this.innerHTML = `<i class="fas fa-chevron-up"></i> Hide replies`;
+                            this.setAttribute('data-replies-visible', 'true');
+                        }
+                    });
+                }
+            }
+
+            function showReplyInput(commentId, username, recipeId, replyToReplyId = null) {
+                const repliesContainer = document.getElementById(`replies-${commentId}`);
+                
+                // Show replies container if it's hidden
+                repliesContainer.style.display = 'block';
+                
+                // Remove existing reply input if any
+                const existingInput = repliesContainer.querySelector('.reply-input-container');
+                if (existingInput) {
+                    existingInput.remove();
+                    return;
+                }
+                
+                // Create reply input
+                const replyInput = document.createElement('div');
+                replyInput.className = 'reply-input-container d-flex align-items-center mt-2';
+                replyInput.innerHTML = `
+                    <div class="flex-grow-1">
+                        <input type="text" class="form-control form-control-sm" 
+                               placeholder="Reply to ${username}..."
+                               value="@${username} ">
+                    </div>
+                    <div class="ms-2">
+                        <button class="btn btn-primary btn-sm">Reply</button>
+                        <button class="btn btn-light btn-sm cancel-reply">Cancel</button>
+                    </div>
+                `;
+                
+                // Add event listeners for reply submission
+                const submitBtn = replyInput.querySelector('.btn-primary');
+                const cancelBtn = replyInput.querySelector('.cancel-reply');
+                const input = replyInput.querySelector('input');
+                
+                submitBtn.addEventListener('click', () => {
+                    const replyText = input.value.trim();
+                    if (replyText) {
+                        submitReply(commentId, replyText, recipeId, replyToReplyId);
+                        replyInput.remove();
+                    }
+                });
+
+                cancelBtn.addEventListener('click', () => {
+                    replyInput.remove();
+                });
+                
+                // Also submit on Enter key
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        const replyText = input.value.trim();
+                        if (replyText) {
+                            submitReply(commentId, replyText, recipeId, replyToReplyId);
+                            replyInput.remove();
+                        }
+                    }
+                });
+                
+                repliesContainer.prepend(replyInput);
+                input.focus();
+                
+                // Update view replies button state
+                const viewRepliesBtn = document.querySelector(`button.view-replies-btn[data-comment-id="${commentId}"]`);
+                if (viewRepliesBtn) {
+                    viewRepliesBtn.setAttribute('data-replies-visible', 'true');
+                    viewRepliesBtn.innerHTML = `<i class="fas fa-chevron-up"></i> Hide replies`;
+                }
+            }
+
+            function submitReply(commentId, replyText, recipeId, replyToReplyId = null) {
+                // Create payload with optional reference to another reply
+                const payload = { 
+                    reply: replyText 
+                };
+                
+                // If we're replying to another reply, include its ID
+                if (replyToReplyId) {
+                    payload.reference_reply_id = replyToReplyId;
+                }
+                
+                fetch(`/recipe/comment/${commentId}/reply`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-Token': document.querySelector('input[name="csrf_token"]').value
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Add the new reply to the UI
+                        addReplyToUI(commentId, data.reply);
+                        // Update replies count
+                        updateRepliesCount(commentId, data.replies_count);
+                        
+                        // Show success notification
+                        showToast('Reply posted successfully!');
+                        
+                        // Show replies if they were hidden
+                        const repliesContainer = document.getElementById(`replies-${commentId}`);
+                        repliesContainer.style.display = 'block';
+                        
+                        // Make sure view replies button shows "Hide replies"
+                        const viewRepliesBtn = document.querySelector(`button.view-replies-btn[data-comment-id="${commentId}"]`);
+                        if (viewRepliesBtn) {
+                            viewRepliesBtn.setAttribute('data-replies-visible', 'true');
+                            viewRepliesBtn.innerHTML = `<i class="fas fa-chevron-up"></i> Hide replies`;
+                        }
+                    } else {
+                        throw new Error(data.error || 'Failed to submit reply');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Failed to submit reply. Please try again.', 'danger');
+                });
+            }
+
+            function loadReplies(commentId, recipeId) {
+                const repliesContainer = document.getElementById(`replies-${commentId}`);
+                
+                // Show loading state
+                repliesContainer.innerHTML = `
+                    <div class="text-center my-2">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <small class="text-muted ms-2">Loading replies...</small>
+                    </div>
+                `;
+                
+                fetch(`/recipe/comment/${commentId}/replies`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            repliesContainer.innerHTML = '';
+                            if (data.replies && data.replies.length > 0) {
+                                data.replies.forEach(reply => {
+                                    addReplyToUI(commentId, reply);
+                                });
+                            } else {
+                                repliesContainer.innerHTML = `
+                                    <p class="text-muted small text-center my-2">No replies yet.</p>
+                                `;
+                            }
+                        } else {
+                            throw new Error(data.error || 'Failed to load replies');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        repliesContainer.innerHTML = `
+                            <div class="alert alert-danger py-2 text-center my-2">
+                                <p class="mb-0 small">Failed to load replies. Please try again.</p>
+                            </div>
+                        `;
+                    });
+            }
+
+            function addReplyToUI(commentId, reply) {
+                const repliesContainer = document.getElementById(`replies-${commentId}`);
+                
+                const replyElement = document.createElement('div');
+                replyElement.className = 'reply d-flex align-items-start mt-2';
+                replyElement.innerHTML = `
+                    <div class="me-2">
+                        <img src="${reply.user_profile_pic ? '/static/' + reply.user_profile_pic : '/static/images/default-avatar.svg'}" 
+                             class="rounded-circle" alt="${reply.user_name}" 
+                             style="width: 24px; height: 24px; object-fit: cover;">
+                    </div>
+                    <div class="reply-content bg-light rounded-3 px-2 py-1 flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <p class="mb-0"><span class="fw-bold">${reply.user_name}</span></p>
+                            <small class="text-muted">${reply.created_at}</small>
+                        </div>
+                        <p class="mb-0 small">${reply.text}</p>
+                        <div class="d-flex align-items-center mt-1">
+                            <button class="btn btn-sm btn-link text-decoration-none p-0 react-btn" 
+                                    data-comment-id="${reply.id}"
+                                    data-reacted="${reply.user_has_reacted || 'false'}">
+                                <i class="${reply.user_has_reacted ? 'fas text-danger' : 'far'} fa-heart"></i>
+                                <span class="reactions-count">${reply.reactions_count || 0}</span>
+                            </button>
+                            <button class="btn btn-sm btn-link text-decoration-none p-0 reply-btn ms-2" 
+                                    data-comment-id="${reply.id}"
+                                    data-username="${reply.user_name}"
+                                    data-parent-id="${commentId}">
+                                <i class="far fa-comment"></i> Reply
+                            </button>
+                        </div>
+                        <div id="replies-${reply.id}" class="nested-replies-container mt-2 ms-3" style="display: none;"></div>
+                    </div>
+                `;
+                
+                repliesContainer.appendChild(replyElement);
+                
+                // Add event listeners to the new reply
+                const reactBtn = replyElement.querySelector('.react-btn');
+                if (reactBtn) {
+                    reactBtn.addEventListener('click', function() {
+                        const replyId = this.getAttribute('data-comment-id');
+                        handleCommentReaction(replyId);
+                    });
+                }
+                
+                const replyBtn = replyElement.querySelector('.reply-btn');
+                if (replyBtn) {
+                    replyBtn.addEventListener('click', function() {
+                        const replyId = this.getAttribute('data-comment-id');
+                        const username = this.getAttribute('data-username');
+                        const parentId = this.getAttribute('data-parent-id');
+                        
+                        // Show reply input in the parent's replies container
+                        // This makes replies appear at the same level in the UI
+                        showReplyInput(parentId, username, null, replyId);
+                    });
+                }
+            }
+
+            function updateRepliesCount(commentId, count) {
+                const viewRepliesBtn = document.querySelector(`button.view-replies-btn[data-comment-id="${commentId}"]`);
+                const repliesCountDiv = viewRepliesBtn?.closest('.replies-count');
+                
+                if (viewRepliesBtn) {
+                    viewRepliesBtn.setAttribute('data-replies-count', count.toString());
+                    
+                    // Update visibility of replies count div
+                    if (repliesCountDiv) {
+                        repliesCountDiv.style.display = count > 0 ? 'block' : 'none';
+                    }
+                    
+                    // Update button text based on visibility state
+                    if (viewRepliesBtn.getAttribute('data-replies-visible') === 'true') {
+                        viewRepliesBtn.innerHTML = `<i class="fas fa-chevron-up"></i> Hide replies`;
+                    } else {
+                        viewRepliesBtn.innerHTML = `<i class="fas fa-chevron-down"></i> View ${count} ${count === 1 ? 'reply' : 'replies'}`;
+                    }
+                }
+            }
+
+            // User Profile Modal functionality
+            function setupProfilePictureClicks() {
+                // Apply to all profile pictures in recipes and comments
+                document.querySelectorAll('.recipe-card .profile-pic, .comment .profile-pic, .reply .profile-pic, .card-body img.rounded-circle, .card-body p.fw-medium[data-user-id]').forEach(element => {
+                    if (!element.getAttribute('data-user-id')) return;
+                    
+                    element.style.cursor = 'pointer';
+                    element.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const userId = this.getAttribute('data-user-id');
+                        if (userId) {
+                            showUserProfileModal(userId);
+                        }
+                    });
+                });
+            }
+            
+            // Setup profile clicks for initial page load
+            setupProfilePictureClicks();
+            
+            // Show user profile modal
+            function showUserProfileModal(userId) {
+                // Reset modal state
+                document.getElementById('profileModalLoader').style.display = 'block';
+                document.getElementById('profileModalContent').style.display = 'none';
+                document.getElementById('profileModalError').style.display = 'none';
+                
+                // Show the modal
+                const profileModal = new bootstrap.Modal(document.getElementById('userProfileModal'));
+                profileModal.show();
+                
+                // Fetch user profile data
+                fetch(`/user/${userId}/profile`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            populateProfileModal(data.user);
+                        } else {
+                            throw new Error(data.error || 'Failed to load user profile');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        document.getElementById('profileModalLoader').style.display = 'none';
+                        document.getElementById('profileModalError').style.display = 'block';
+                    });
+            }
+            
+            // Populate user profile modal with data
+            function populateProfileModal(user) {
+                // Set profile image
+                const profilePic = document.getElementById('profileModalPic');
+                profilePic.src = user.profile_pic 
+                    ? `/static/${user.profile_pic}` 
+                    : '/static/images/default-avatar.svg';
+                
+                // Set user name and info
+                document.getElementById('profileModalName').textContent = `${user.first_name} ${user.last_name}`;
+                document.getElementById('profileModalLocation').innerHTML = 
+                    user.location 
+                    ? `<i class="fas fa-map-marker-alt me-1"></i> ${user.location}`
+                    : `<i class="fas fa-map-marker-alt me-1"></i> No location set`;
+                document.getElementById('profileModalBio').textContent = user.bio || 'No bio available';
+                
+                // Set statistics
+                document.getElementById('profileModalRecipeCount').textContent = user.recipe_count || 0;
+                document.getElementById('profileModalFollowers').textContent = user.followers_count || 0;
+                document.getElementById('profileModalFollowing').textContent = user.following_count || 0;
+                
+                // Setup follow button
+                const followBtn = document.getElementById('profileModalFollowBtn');
+                const isCurrentUser = user.id === parseInt('{{ session.user_id }}');
+                
+                if (isCurrentUser) {
+                    // It's the current user's profile
+                    followBtn.textContent = 'Edit Profile';
+                    followBtn.className = 'btn btn-outline-secondary px-4';
+                    followBtn.onclick = function() {
+                        window.location.href = '/user-profile';
+                    };
+                } else {
+                    // It's another user's profile
+                    if (user.is_following) {
+                        followBtn.textContent = 'Following';
+                        followBtn.className = 'btn btn-success px-4';
+                    } else {
+                        followBtn.textContent = 'Follow';
+                        followBtn.className = 'btn btn-primary px-4';
+                    }
+                    
+                    followBtn.onclick = function() {
+                        toggleFollow(user.id, followBtn);
+                    };
+                }
+                
+                // Show content, hide loader
+                document.getElementById('profileModalLoader').style.display = 'none';
+                document.getElementById('profileModalContent').style.display = 'block';
+            }
+            
+            // Toggle follow/unfollow
+            function toggleFollow(userId, button) {
+                // Optimistically update UI
+                const isFollowing = button.textContent === 'Following';
+                
+                if (isFollowing) {
+                    button.textContent = 'Follow';
+                    button.className = 'btn btn-primary px-4';
+                    const followerCount = parseInt(document.getElementById('profileModalFollowers').textContent) - 1;
+                    document.getElementById('profileModalFollowers').textContent = Math.max(0, followerCount);
+                } else {
+                    button.textContent = 'Following';
+                    button.className = 'btn btn-success px-4';
+                    const followerCount = parseInt(document.getElementById('profileModalFollowers').textContent) + 1;
+                    document.getElementById('profileModalFollowers').textContent = followerCount;
+                }
+                
+                // Send API request
+                fetch(`/user/${userId}/follow`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-Token': document.querySelector('input[name="csrf_token"]').value
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Update follower count with accurate server data
+                        document.getElementById('profileModalFollowers').textContent = data.followers_count;
+                        
+                        // Show toast notification
+                        const action = data.action === 'followed' ? 'followed' : 'unfollowed';
+                        showToast(`You have ${action} this user`);
+                    } else {
+                        throw new Error(data.error || 'Failed to update follow status');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Failed to update follow status. Please try again.', 'danger');
+                    
+                    // Revert UI on error
+                    if (isFollowing) {
+                        button.textContent = 'Following';
+                        button.className = 'btn btn-success px-4';
+                    } else {
+                        button.textContent = 'Follow';
+                        button.className = 'btn btn-primary px-4';
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- Recipe Details Modal -->
+    <div class="modal fade" id="recipeDetailsModal" tabindex="-1" aria-labelledby="recipeDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="recipeDetailsContent">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading recipe details...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Details Modal -->
+    <div class="modal fade" id="userDetailsModal" tabindex="-1" aria-labelledby="userDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="userDetailsContent">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading user details...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add JavaScript for search functionality -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+        const recipeDetailsModal = new bootstrap.Modal(document.getElementById('recipeDetailsModal'));
+        const userDetailsModal = new bootstrap.Modal(document.getElementById('userDetailsModal'));
+        
+        let typingTimer;
+        const doneTypingInterval = 500; // ms
+        
+        // Show search results container when input is focused
+        searchInput.addEventListener('focus', function() {
+            if (searchInput.value.trim().length >= 2) {
+                searchResults.classList.remove('d-none');
+            }
+        });
+        
+        // Handle search input
+        searchInput.addEventListener('keyup', function() {
+            clearTimeout(typingTimer);
+            
+            if (searchInput.value.trim().length < 2) {
+                searchResults.classList.add('d-none');
+                return;
+            }
+            
+            typingTimer = setTimeout(performSearch, doneTypingInterval);
+        });
+        
+        // Hide search results when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!searchInput.contains(event.target) && !searchResults.contains(event.target)) {
+                searchResults.classList.add('d-none');
+            }
+        });
+        
+        // Search function
+        function performSearch() {
+            const searchTerm = searchInput.value.trim();
+            
+            if (searchTerm.length < 2) return;
+            
+            // Show loading indicator
+            searchResults.classList.remove('d-none');
+            searchResults.innerHTML = `
+                <div class="p-3 text-center">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    <p class="mb-0 mt-2">Searching...</p>
+                </div>
+            `;
+            
+            // Make AJAX request
+            fetch(`/search?q=${encodeURIComponent(searchTerm)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        searchResults.innerHTML = `
+                            <div class="p-3 text-center text-danger">
+                                <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
+                                <p class="mb-0">Error loading results</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    const users = data.users || [];
+                    const recipes = data.recipes || [];
+                    
+                    if (users.length === 0 && recipes.length === 0) {
+                        searchResults.innerHTML = `
+                            <div class="p-3 text-center text-muted">
+                                <i class="fas fa-search fa-2x mb-2"></i>
+                                <p class="mb-0">No results found for "${searchTerm}"</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    // Build result HTML
+                    let resultsHtml = '';
+                    
+                    // Add users section if there are users
+                    if (users.length > 0) {
+                        resultsHtml += `<h6 class="dropdown-header">Users</h6>`;
+                        users.forEach(user => {
+                            resultsHtml += `
+                                <a href="#" class="dropdown-item py-2 d-flex align-items-center user-result" data-user-id="${user.id}">
+                                    <div class="flex-shrink-0">
+                                        ${user.profile_pic 
+                                            ? `<img src="${user.profile_pic.startsWith('/') ? '' : '/'}static/${user.profile_pic.replace('static/', '')}" class="rounded-circle" width="32" height="32" alt="${user.name}">`
+                                            : `<div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;"><i class="fas fa-user"></i></div>`
+                                        }
+                                    </div>
+                                    <div class="ms-2">
+                                        <div class="fw-bold">${user.name}</div>
+                                        <small class="text-muted">@${user.display_name || user.name.split(' ')[0].toLowerCase()}</small>
+                                    </div>
+                                    <div class="ms-auto small text-muted">
+                                        <span class="me-2"><i class="fas fa-utensils me-1"></i>${user.recipes_count}</span>
+                                        <span><i class="fas fa-heart me-1"></i>${user.likes_count}</span>
+                                    </div>
+                                </a>
+                            `;
+                        });
+                    }
+                    
+                    // Add recipes section if there are recipes
+                    if (recipes.length > 0) {
+                        if (users.length > 0) {
+                            resultsHtml += `<div class="dropdown-divider"></div>`;
+                        }
+                        resultsHtml += `<h6 class="dropdown-header">Recipes</h6>`;
+                        recipes.forEach(recipe => {
+                            resultsHtml += `
+                                <a href="#" class="dropdown-item py-2 d-flex align-items-center recipe-result" data-recipe-id="${recipe.id}">
+                                    <div class="flex-shrink-0">
+                                        ${recipe.photo_path 
+                                            ? `<img src="${recipe.photo_path.startsWith('/') ? '' : '/'}static/${recipe.photo_path.replace('static/', '')}" class="rounded" width="40" height="40" alt="${recipe.title}" style="object-fit: cover;">`
+                                            : `<div class="rounded bg-light d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="fas fa-utensils text-secondary"></i></div>`
+                                        }
+                                    </div>
+                                    <div class="ms-2 overflow-hidden">
+                                        <div class="fw-bold text-truncate" style="max-width: 200px;">${recipe.title}</div>
+                                        <small class="text-muted d-block text-truncate" style="max-width: 200px;">
+                                            ${recipe.description || recipe.cuisine_type || 'Recipe'}
+                                        </small>
+                                    </div>
+                                    <div class="ms-auto small text-muted">
+                                        <span class="me-2"><i class="fas fa-heart me-1"></i>${recipe.likes_count}</span>
+                                        <span><i class="fas fa-comment me-1"></i>${recipe.comments_count}</span>
+                                    </div>
+                                </a>
+                            `;
+                        });
+                    }
+                    
+                    searchResults.innerHTML = resultsHtml;
+                    
+                    // Add event listeners to user results
+                    document.querySelectorAll('.user-result').forEach(el => {
+                        el.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const userId = this.getAttribute('data-user-id');
+                            openUserModal(userId);
+                        });
+                    });
+                    
+                    // Add event listeners to recipe results
+                    document.querySelectorAll('.recipe-result').forEach(el => {
+                        el.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const recipeId = this.getAttribute('data-recipe-id');
+                            openRecipeModal(recipeId);
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('Search error:', error);
+                    searchResults.innerHTML = `
+                        <div class="p-3 text-center text-danger">
+                            <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
+                            <p class="mb-0">Error loading results</p>
+                        </div>
+                    `;
+                });
+        }
+        
+        // Function to open user details modal
+        function openUserModal(userId) {
+            const userDetailsContent = document.getElementById('userDetailsContent');
+            userDetailsContent.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading user details...</p>
+                </div>
+            `;
+            
+            userDetailsModal.show();
+            searchResults.classList.add('d-none');
+            
+            // Fetch user data
+            fetch(`/user/${userId}/profile-data`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        userDetailsContent.innerHTML = `
+                            <div class="text-center py-5 text-danger">
+                                <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
+                                <h5>Error</h5>
+                                <p>Failed to load user details</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    const user = data.user;
+                    
+                    // Build user profile HTML
+                    const userHtml = `
+                        <div class="text-center mb-4">
+                            ${user.profile_pic 
+                                ? `<img src="${user.profile_pic.startsWith('/') ? '' : '/'}static/${user.profile_pic.replace('static/', '')}" class="rounded-circle img-thumbnail" style="width: 120px; height: 120px; object-fit: cover;" alt="${user.name}">`
+                                : `<div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center mx-auto" style="width: 120px; height: 120px;"><i class="fas fa-user fa-3x"></i></div>`
+                            }
+                            <h4 class="mt-3 mb-1">${user.name}</h4>
+                            <p class="text-muted">@${user.display_name || user.name.split(' ')[0].toLowerCase()}</p>
+                            
+                            <div class="d-flex justify-content-center gap-4 mt-3">
+                                <div class="text-center">
+                                    <h5>${user.recipes_count}</h5>
+                                    <p class="text-muted mb-0">Recipes</p>
+                                </div>
+                                <div class="text-center">
+                                    <h5>${user.followers_count}</h5>
+                                    <p class="text-muted mb-0">Followers</p>
+                                </div>
+                                <div class="text-center">
+                                    <h5>${user.following_count}</h5>
+                                    <p class="text-muted mb-0">Following</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                ${user.is_current_user
+                                    ? `<a href="/user/profile" class="btn btn-outline-primary me-2">Edit Profile</a>`
+                                    : `<button type="button" class="btn ${user.is_following ? 'btn-secondary' : 'btn-primary'} follow-btn" data-user-id="${user.id}" data-following="${user.is_following ? 'true' : 'false'}">
+                                        ${user.is_following ? '<i class="fas fa-user-check me-1"></i>Following' : '<i class="fas fa-user-plus me-1"></i>Follow'}
+                                      </button>`
+                                }
+                                <a href="/user/${user.id}/recipes" class="btn btn-outline-secondary">View Recipes</a>
+                            </div>
+                        </div>
+                        
+                        ${user.bio ? `<div class="card mb-4"><div class="card-body"><p class="mb-0">${user.bio}</p></div></div>` : ''}
+                        
+                        <h5 class="mb-3">Recent Recipes</h5>
+                        ${user.recent_recipes && user.recent_recipes.length > 0 
+                            ? `<div class="row">
+                                ${user.recent_recipes.map(recipe => `
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card h-100">
+                                            <div class="row g-0">
+                                                <div class="col-4">
+                                                    ${recipe.photo_path 
+                                                        ? `<img src="${recipe.photo_path.startsWith('/') ? '' : '/'}static/${recipe.photo_path.replace('static/', '')}" class="img-fluid rounded-start" alt="${recipe.title}" style="height: 100%; object-fit: cover;">`
+                                                        : `<div class="bg-light d-flex align-items-center justify-content-center h-100"><i class="fas fa-utensils fa-2x text-secondary"></i></div>`
+                                                    }
+                                                </div>
+                                                <div class="col-8">
+                                                    <div class="card-body">
+                                                        <h6 class="card-title text-truncate">${recipe.title}</h6>
+                                                        <p class="card-text small text-muted mb-2">
+                                                            <i class="far fa-calendar-alt me-1"></i>${recipe.created_at}
+                                                        </p>
+                                                        <button class="btn btn-sm btn-outline-primary recipe-btn" data-recipe-id="${recipe.id}">
+                                                            View Recipe
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                               </div>`
+                            : `<div class="text-center py-4 text-muted">
+                                <i class="fas fa-utensils fa-3x mb-3"></i>
+                                <p>No recipes found</p>
+                               </div>`
+                        }
+                    `;
+                    
+                    userDetailsContent.innerHTML = userHtml;
+                    
+                    // Add event listeners to recipe buttons
+                    document.querySelectorAll('.recipe-btn').forEach(el => {
+                        el.addEventListener('click', function() {
+                            const recipeId = this.getAttribute('data-recipe-id');
+                            userDetailsModal.hide();
+                            openRecipeModal(recipeId);
+                        });
+                    });
+                    
+                    // Add event listeners to follow buttons
+                    document.querySelectorAll('.follow-btn').forEach(el => {
+                        el.addEventListener('click', function() {
+                            const userId = this.getAttribute('data-user-id');
+                            const isFollowing = this.getAttribute('data-following') === 'true';
+                            toggleFollow(userId, isFollowing, this);
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading user details:', error);
+                    userDetailsContent.innerHTML = `
+                        <div class="text-center py-5 text-danger">
+                            <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
+                            <h5>Error</h5>
+                            <p>Failed to load user details</p>
+                        </div>
+                    `;
+                });
+        }
+        
+        // Function to open recipe details modal
+        function openRecipeModal(recipeId) {
+            const recipeDetailsContent = document.getElementById('recipeDetailsContent');
+            recipeDetailsContent.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading recipe details...</p>
+                </div>
+            `;
+            
+            recipeDetailsModal.show();
+            searchResults.classList.add('d-none');
+            
+            // Fetch recipe data
+            fetch(`/recipe/${recipeId}/data`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        recipeDetailsContent.innerHTML = `
+                            <div class="text-center py-5 text-danger">
+                                <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
+                                <h5>Error</h5>
+                                <p>Failed to load recipe details</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    const recipe = data.recipe;
+                    
+                    // Build recipe details HTML
+                    const recipeHtml = `
+                        <div class="position-relative mb-4">
+                            ${recipe.photo_path 
+                                ? `<img src="${recipe.photo_path.startsWith('/') ? '' : '/'}static/${recipe.photo_path.replace('static/', '')}" class="img-fluid rounded" alt="${recipe.title}" style="max-height: 300px; width: 100%; object-fit: cover;">`
+                                : `<div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 200px;"><i class="fas fa-utensils fa-3x text-secondary"></i></div>`
+                            }
+                            
+                            <!-- Recipe info overlay -->
+                            <div class="position-absolute bottom-0 start-0 w-100 p-3 text-white" style="background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0) 100px);">
+                                <div class="d-flex align-items-center">
+                                    ${recipe.author.profile_pic 
+                                        ? `<img src="${recipe.author.profile_pic.startsWith('/') ? '' : '/'}static/${recipe.author.profile_pic.replace('static/', '')}" class="rounded-circle me-2" width="40" height="40" alt="${recipe.author.name}" style="object-fit: cover;">`
+                                        : `<div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;"><i class="fas fa-user"></i></div>`
+                                    }
+                                    <div>
+                                        <h6 class="mb-0">${recipe.title}</h6>
+                                        <small>by <a href="#" class="text-white author-link" data-user-id="${recipe.author.id}">${recipe.author.name}</a> · ${recipe.relative_time}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                ${recipe.cuisine_type ? `<span class="badge bg-secondary me-2">${recipe.cuisine_type}</span>` : ''}
+                                ${recipe.prep_time ? `<span class="badge bg-light text-dark me-2"><i class="far fa-clock me-1"></i>${recipe.prep_time} mins</span>` : ''}
+                                ${recipe.calories ? `<span class="badge bg-light text-dark me-2"><i class="fas fa-fire me-1"></i>${recipe.calories} cal</span>` : ''}
+                                ${recipe.servings ? `<span class="badge bg-light text-dark"><i class="fas fa-users me-1"></i>Serves ${recipe.servings}</span>` : ''}
+                            </div>
+                            
+                            <div>
+                                <button class="btn btn-sm btn-outline-danger me-2 like-btn" data-recipe-id="${recipe.id}" data-liked="${recipe.is_liked ? 'true' : 'false'}">
+                                    <i class="${recipe.is_liked ? 'fas' : 'far'} fa-heart me-1"></i>${recipe.likes_count}
+                                </button>
+                                <button class="btn btn-sm btn-outline-success save-btn" data-recipe-id="${recipe.id}" data-saved="${recipe.is_saved ? 'true' : 'false'}">
+                                    <i class="${recipe.is_saved ? 'fas' : 'far'} fa-bookmark me-1"></i>${recipe.is_saved ? 'Saved' : 'Save'}
+                                </button>
+                            </div>
+                        </div>
+                        
+                        ${recipe.description ? `<p class="mb-4">${recipe.description}</p>` : ''}
+                        
+                        <div class="row">
+                            <!-- Ingredients Column -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0"><i class="fas fa-list-ul me-2 text-primary"></i>Ingredients</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-group list-group-flush">
+                                            ${recipe.ingredients.map(ingredient => 
+                                                `<li class="list-group-item border-0 py-2">
+                                                    <i class="fas fa-circle me-2 text-success"></i>${ingredient}
+                                                </li>`
+                                            ).join('')}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Instructions Column -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0"><i class="fas fa-tasks me-2 text-primary"></i>Instructions</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <ol class="list-group list-group-numbered">
+                                            ${recipe.instructions.map(step => 
+                                                `<li class="list-group-item border-0 py-2">${step}</li>`
+                                            ).join('')}
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    recipeDetailsContent.innerHTML = recipeHtml;
+                    
+                    // Add event listener to author link
+                    document.querySelectorAll('.author-link').forEach(el => {
+                        el.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const userId = this.getAttribute('data-user-id');
+                            recipeDetailsModal.hide();
+                            openUserModal(userId);
+                        });
+                    });
+                    
+                    // Add event listeners to like and save buttons
+                    document.querySelectorAll('.like-btn').forEach(el => {
+                        el.addEventListener('click', function() {
+                            const recipeId = this.getAttribute('data-recipe-id');
+                            const isLiked = this.getAttribute('data-liked') === 'true';
+                            toggleLike(recipeId, isLiked, this);
+                        });
+                    });
+                    
+                    document.querySelectorAll('.save-btn').forEach(el => {
+                        el.addEventListener('click', function() {
+                            const recipeId = this.getAttribute('data-recipe-id');
+                            const isSaved = this.getAttribute('data-saved') === 'true';
+                            toggleSave(recipeId, isSaved, this);
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading recipe details:', error);
+                    recipeDetailsContent.innerHTML = `
+                        <div class="text-center py-5 text-danger">
+                            <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
+                            <h5>Error</h5>
+                            <p>Failed to load recipe details</p>
+                        </div>
+                    `;
+                });
+        }
+        
+        // Function to toggle like status
+        function toggleLike(recipeId, isLiked, button) {
+            const action = isLiked ? 'unlike' : 'like';
+            
+            fetch(`/recipe/${recipeId}/${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const likesCountEl = button.querySelector('i').nextSibling;
+                    likesCountEl.nodeValue = data.likes_count;
+                    
+                    if (isLiked) {
+                        button.innerHTML = `<i class="far fa-heart me-1"></i>${data.likes_count}`;
+                        button.setAttribute('data-liked', 'false');
+                    } else {
+                        button.innerHTML = `<i class="fas fa-heart me-1"></i>${data.likes_count}`;
+                        button.setAttribute('data-liked', 'true');
+                    }
+                }
+            })
+            .catch(error => console.error('Error toggling like:', error));
+        }
+        
+        // Function to toggle save status
+        function toggleSave(recipeId, isSaved, button) {
+            const action = isSaved ? 'unsave' : 'save';
+            
+            fetch(`/recipe/${recipeId}/${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (isSaved) {
+                        button.innerHTML = `<i class="far fa-bookmark me-1"></i>Save`;
+                        button.setAttribute('data-saved', 'false');
+                    } else {
+                        button.innerHTML = `<i class="fas fa-bookmark me-1"></i>Saved`;
+                        button.setAttribute('data-saved', 'true');
+                    }
+                }
+            })
+            .catch(error => console.error('Error toggling save:', error));
+        }
+        
+        // Function to toggle follow status
+        function toggleFollow(userId, isFollowing, button) {
+            const action = isFollowing ? 'unfollow' : 'follow';
+            
+            fetch(`/user/${userId}/${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (isFollowing) {
+                        button.innerHTML = `<i class="fas fa-user-plus me-1"></i>Follow`;
+                        button.setAttribute('data-following', 'false');
+                        button.classList.remove('btn-secondary');
+                        button.classList.add('btn-primary');
+                    } else {
+                        button.innerHTML = `<i class="fas fa-user-check me-1"></i>Following`;
+                        button.setAttribute('data-following', 'true');
+                        button.classList.remove('btn-primary');
+                        button.classList.add('btn-secondary');
+                    }
+                }
+            })
+            .catch(error => console.error('Error toggling follow:', error));
+        }
+    });
+    </script>
+</body>
+</html> 

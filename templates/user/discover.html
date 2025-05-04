@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Discover | Recipe Blog</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="{{ url_for('user_dashboard') }}">Recipe Blog</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('user_dashboard') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('discover') }}">Discover</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('saved_recipes') }}">Saved</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('following') }}">Following</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="position-relative me-3">
+                        <input type="text" class="form-control rounded-pill" placeholder="Search recipes...">
+                    </div>
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            {% if current_user and current_user.profile_pic %}
+                            <img src="{{ url_for('static', filename=current_user.profile_pic) }}" class="rounded-circle" width="32" height="32" alt="Profile">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='img/default-avatar.png') }}" class="rounded-circle" width="32" height="32" alt="Profile">
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                            <li><a class="dropdown-item" href="{{ url_for('user_profile') }}">Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('user_settings') }}">Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <h1 class="mb-4">Discover New Recipes</h1>
+        
+        <!-- Cuisine Type Filter Section -->
+        <div class="mb-4">
+            <h5 class="mb-3">Filter by Cuisine Type</h5>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ url_for('discover', cuisine_type='all') }}" 
+                   class="btn {% if selected_cuisine == 'all' or not selected_cuisine %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-pill">
+                   <i class="fas fa-globe-americas me-1"></i> All Cuisines
+                </a>
+                {% for cuisine in cuisine_types %}
+                <a href="{{ url_for('discover', cuisine_type=cuisine) }}" 
+                   class="btn {% if selected_cuisine == cuisine %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-pill">
+                   <i class="fas fa-utensils me-1"></i> {{ cuisine }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Trending Recipes -->
+        <div class="mb-5">
+            <h5 class="mb-3">Trending Now</h5>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+                {% if trending_recipes %}
+                    {% for recipe in trending_recipes %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            {% if recipe.photo_path %}
+                            <img src="{{ url_for('static', filename=recipe.photo_path) }}" class="card-img-top" style="height: 180px; object-fit: cover;" alt="{{ recipe.title }}">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='images/default-recipe.jpg') }}" class="card-img-top" style="height: 180px; object-fit: cover;" alt="{{ recipe.title }}">
+                            {% endif %}
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    {% if recipe.profile_pic %}
+                                    <img src="{{ url_for('static', filename=recipe.profile_pic) }}" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;" alt="{{ recipe.author_name }}">
+                                    {% else %}
+                                    <img src="{{ url_for('static', filename='images/default-avatar.svg') }}" class="rounded-circle me-2" width="32" height="32" alt="{{ recipe.author_name }}">
+                                    {% endif %}
+                                    <small class="text-muted">{{ recipe.author_name }}</small>
+                                </div>
+                                <h5 class="card-title">{{ recipe.title }}</h5>
+                                <div class="card-body border-top pt-4">
+                                    {% if recipe.cuisine_type %}
+                                    <div class="text-center mb-3">
+                                        {% if recipe.cuisine_type == "International" %}
+                                        <span class="badge bg-success px-3 py-2"><i class="fas fa-globe-americas me-1"></i> {{ recipe.cuisine_type }} Cuisine</span>
+                                        {% elif recipe.cuisine_type == "Luzon" %}
+                                        <span class="badge bg-primary px-3 py-2"><i class="fas fa-utensils me-1"></i> {{ recipe.cuisine_type }} Cuisine</span>
+                                        {% elif recipe.cuisine_type == "Visayas" %}
+                                        <span class="badge bg-danger px-3 py-2"><i class="fas fa-utensils me-1"></i> {{ recipe.cuisine_type }} Cuisine</span>
+                                        {% elif recipe.cuisine_type == "Mindanao" %}
+                                        <span class="badge bg-warning text-dark px-3 py-2"><i class="fas fa-utensils me-1"></i> {{ recipe.cuisine_type }} Cuisine</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary px-3 py-2"><i class="fas fa-utensils me-1"></i> {{ recipe.cuisine_type }} Cuisine</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <p class="card-text small text-muted">
+                                                {% if recipe.prep_time %}Ready in {{ recipe.prep_time + (recipe.cook_time or 0) }} min{% endif %}
+                                                {% if recipe.calories %} • {{ recipe.calories }} cal{% endif %}
+                                            </p>
+                                        </div>
+                                        <div class="col-6 text-end">
+                                            <div class="small text-muted">
+                                                <i class="fas fa-heart"></i> {{ recipe.likes_count or 0 }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <div class="small text-muted">
+                                            <i class="fas fa-comment"></i> {{ recipe.comments_count or 0 }}
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary view-recipe-btn" data-recipe-id="{{ recipe.id }}">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12 text-center">
+                        <p class="text-muted">No trending recipes found</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- All Recipes -->
+        <div class="mb-5">
+            <h5 class="mb-3">{% if selected_cuisine != 'all' and selected_cuisine %}{{ selected_cuisine }} Recipes{% else %}All Recipes{% endif %}</h5>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% if recipes %}
+                    {% for recipe in recipes %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            {% if recipe.photo_path %}
+                            <img src="{{ url_for('static', filename=recipe.photo_path) }}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="{{ recipe.title }}">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='images/default-recipe.jpg') }}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="{{ recipe.title }}">
+                            {% endif %}
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    {% if recipe.profile_pic %}
+                                    <img src="{{ url_for('static', filename=recipe.profile_pic) }}" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;" alt="{{ recipe.author_name }}">
+                                    {% else %}
+                                    <img src="{{ url_for('static', filename='images/default-avatar.svg') }}" class="rounded-circle me-2" width="32" height="32" alt="{{ recipe.author_name }}">
+                                    {% endif %}
+                                    <small class="text-muted">{{ recipe.author_name }}</small>
+                                </div>
+                                <h5 class="card-title">{{ recipe.title }}</h5>
+                                {% if recipe.cuisine_type %}
+                                <div class="mb-2">
+                                    {% if recipe.cuisine_type == "International" %}
+                                    <span class="badge bg-success"><i class="fas fa-globe-americas me-1"></i> {{ recipe.cuisine_type }}</span>
+                                    {% elif recipe.cuisine_type == "Luzon" %}
+                                    <span class="badge bg-primary"><i class="fas fa-utensils me-1"></i> {{ recipe.cuisine_type }}</span>
+                                    {% elif recipe.cuisine_type == "Visayas" %}
+                                    <span class="badge bg-danger"><i class="fas fa-utensils me-1"></i> {{ recipe.cuisine_type }}</span>
+                                    {% elif recipe.cuisine_type == "Mindanao" %}
+                                    <span class="badge bg-warning text-dark"><i class="fas fa-utensils me-1"></i> {{ recipe.cuisine_type }}</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary"><i class="fas fa-utensils me-1"></i> {{ recipe.cuisine_type }}</span>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                                <div class="row">
+                                    <div class="col-6">
+                                        <p class="card-text">{{ recipe.description|truncate(100) }}</p>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <p class="card-text small text-muted">
+                                            {% if recipe.prep_time %}Ready in {{ recipe.prep_time + (recipe.cook_time or 0) }} min{% endif %}
+                                            {% if recipe.calories %} • {{ recipe.calories }} cal{% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <div>
+                                        <span class="small text-muted me-2">
+                                            <i class="fas fa-heart"></i> {{ recipe.likes_count or 0 }}
+                                        </span>
+                                        <span class="small text-muted">
+                                            <i class="fas fa-comment"></i> {{ recipe.comments_count or 0 }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-success save-recipe-btn {% if recipe.is_saved %}d-none{% endif %}" data-recipe-id="{{ recipe.id }}">
+                                            <i class="far fa-bookmark"></i> Save
+                                        </button>
+                                        <button class="btn btn-sm btn-success unsave-recipe-btn {% if not recipe.is_saved %}d-none{% endif %}" data-recipe-id="{{ recipe.id }}">
+                                            <i class="fas fa-bookmark"></i> Saved
+                                        </button>
+                                        <button class="btn btn-sm btn-primary view-recipe-btn" data-recipe-id="{{ recipe.id }}">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-utensils fa-3x text-muted mb-3"></i>
+                        <h5>No recipes found</h5>
+                        <p class="text-muted">{% if selected_cuisine != 'all' and selected_cuisine %}No {{ selected_cuisine }} recipes available yet.{% else %}No recipes available yet.{% endif %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Popular Cooks -->
+        <div class="mb-5">
+            <h5 class="mb-3">Popular Cooks to Follow</h5>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+                {% if popular_cooks %}
+                    {% for cook in popular_cooks %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body text-center">
+                                {% if cook.profile_pic %}
+                                <img src="{{ url_for('static', filename=cook.profile_pic) }}" 
+                                     class="rounded-circle mb-3" width="100" height="100" 
+                                     style="object-fit: cover;" alt="{{ cook.first_name }} {{ cook.last_name }}">
+                                {% else %}
+                                <img src="{{ url_for('static', filename='images/default-avatar.svg') }}" 
+                                     class="rounded-circle mb-3" width="100" height="100" alt="{{ cook.first_name }} {{ cook.last_name }}">
+                                {% endif %}
+                                <h5 class="card-title">{{ cook.first_name }} {{ cook.last_name }}</h5>
+                                <p class="card-text small text-muted">{{ cook.bio|truncate(60) if cook.bio else 'Recipe enthusiast' }}</p>
+                                <p class="card-text small text-muted">
+                                    <span class="me-2"><i class="fas fa-utensils"></i> {{ cook.recipe_count }} recipes</span>
+                                    <span><i class="fas fa-users"></i> {{ cook.followers_count }} followers</span>
+                                </p>
+                                <button class="btn btn-{% if cook.is_following %}success{% else %}primary{% endif %} rounded-pill follow-btn" 
+                                        data-user-id="{{ cook.id }}" 
+                                        data-following="{{ 'true' if cook.is_following else 'false' }}">
+                                    {% if cook.is_following %}
+                                    <i class="fas fa-user-check"></i> Following
+                                    {% else %}
+                                    <i class="fas fa-user-plus"></i> Follow
+                                    {% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12 text-center">
+                        <p class="text-muted">No popular cooks found</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Recipe Details Modal -->
+    <div class="modal fade" id="recipeDetailsModal" tabindex="-1" aria-labelledby="recipeDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="recipeDetailsModalLabel">Recipe Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="recipeDetailsLoader" class="text-center my-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Loading recipe details...</p>
+                    </div>
+                    <div id="recipeDetailsContent" style="display: none;">
+                        <!-- Recipe Header -->
+                        <div class="position-relative mb-4">
+                            <img id="recipeImage" src="" class="img-fluid rounded w-100" style="max-height: 300px; object-fit: cover;" alt="Recipe Image">
+                            <div class="position-absolute bottom-0 start-0 w-100 p-3 text-white" style="background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0) 100px);">
+                                <h3 id="recipeTitle" class="mb-1"></h3>
+                                <div id="recipeBadges" class="mb-2"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Author Info -->
+                        <div class="d-flex align-items-center mb-3">
+                            <img id="authorImage" src="" class="rounded-circle me-2" alt="Author" style="width: 40px; height: 40px; object-fit: cover;">
+                            <div>
+                                <p id="authorName" class="mb-0 fw-medium"></p>
+                                <p id="recipeDate" class="mb-0 text-muted small"></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Recipe Description -->
+                        <div class="mb-4">
+                            <p id="recipeDescription" class="mb-2"></p>
+                        </div>
+                        
+                        <!-- Recipe Metadata -->
+                        <div class="row mb-4">
+                            <div class="col-md-3 col-6 text-center mb-3">
+                                <div class="bg-light p-3 rounded">
+                                    <i class="far fa-clock text-primary mb-2" style="font-size: 1.5rem;"></i>
+                                    <h6>Prep Time</h6>
+                                    <p id="recipePrepTime" class="mb-0"></p>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 text-center mb-3">
+                                <div class="bg-light p-3 rounded">
+                                    <i class="fas fa-fire text-primary mb-2" style="font-size: 1.5rem;"></i>
+                                    <h6>Calories</h6>
+                                    <p id="recipeCalories" class="mb-0"></p>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 text-center mb-3">
+                                <div class="bg-light p-3 rounded">
+                                    <i class="fas fa-utensils text-primary mb-2" style="font-size: 1.5rem;"></i>
+                                    <h6>Cuisine</h6>
+                                    <p id="recipeCuisine" class="mb-0"></p>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 text-center mb-3">
+                                <div class="bg-light p-3 rounded">
+                                    <i class="fas fa-users text-primary mb-2" style="font-size: 1.5rem;"></i>
+                                    <h6>Servings</h6>
+                                    <p id="recipeServings" class="mb-0"></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="mb-3"><i class="fas fa-list-ul me-2 text-primary"></i>Ingredients</h5>
+                                <ul id="recipeIngredients" class="list-group list-group-flush mb-4">
+                                    <!-- Ingredients will be added here -->
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="mb-3"><i class="fas fa-tasks me-2 text-primary"></i>Instructions</h5>
+                                <ol id="recipeInstructions" class="list-group list-group-numbered">
+                                    <!-- Instructions will be added here -->
+                                </ol>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                            <div class="w-100 text-center">
+                                <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-2"></i>Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toast notification function
+            function showToast(message, type = 'success') {
+                const toastContainer = document.createElement('div');
+                toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '11';
+                
+                const toastHtml = `
+                    <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                `;
+                
+                toastContainer.innerHTML = toastHtml;
+                document.body.appendChild(toastContainer);
+                
+                const toastElement = toastContainer.querySelector('.toast');
+                const toast = new bootstrap.Toast(toastElement, {
+                    delay: 3000
+                });
+                
+                toast.show();
+                
+                // Remove toast from DOM after it's hidden
+                toastElement.addEventListener('hidden.bs.toast', () => {
+                    toastContainer.remove();
+                });
+            }
+            
+            // Handle follow buttons
+            document.querySelectorAll('.follow-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-user-id');
+                    const isFollowing = this.getAttribute('data-following') === 'true';
+                    
+                    // Optimistically update UI
+                    if (isFollowing) {
+                        this.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                        this.classList.remove('btn-success');
+                        this.classList.add('btn-primary');
+                        this.setAttribute('data-following', 'false');
+                    } else {
+                        this.innerHTML = '<i class="fas fa-user-check"></i> Following';
+                        this.classList.remove('btn-primary');
+                        this.classList.add('btn-success');
+                        this.setAttribute('data-following', 'true');
+                    }
+                    
+                    // Send AJAX request
+                    fetch(`/user/${userId}/follow`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-Token': '{{ csrf_token() }}'
+                        }
+
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            showToast(isFollowing ? 'User unfollowed successfully' : 'User followed successfully');
+                        } else {
+                            throw new Error(data.error || 'Failed to update follow status');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        // Revert UI changes on error
+                        if (isFollowing) {
+                            this.innerHTML = '<i class="fas fa-user-check"></i> Following';
+                            this.classList.remove('btn-primary');
+                            this.classList.add('btn-success');
+                            this.setAttribute('data-following', 'true');
+                        } else {
+                            this.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                            this.classList.remove('btn-success');
+                            this.classList.add('btn-primary');
+                            this.setAttribute('data-following', 'false');
+                        }
+                        showToast('Error updating follow status. Please try again.', 'danger');
+                    });
+                });
+            });
+            
+            // Handle save recipe buttons
+            document.querySelectorAll('.save-recipe-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const recipeId = this.getAttribute('data-recipe-id');
+                    const unsaveBtn = document.querySelector(`.unsave-recipe-btn[data-recipe-id="${recipeId}"]`);
+                    
+                    // Optimistically update UI
+                    this.classList.add('d-none');
+                    unsaveBtn.classList.remove('d-none');
+                    
+                    // Send AJAX request
+                    fetch(`/recipe/${recipeId}/save`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-Token': '{{ csrf_token() }}'
+                        }
+
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            showToast('Recipe saved successfully');
+                        } else {
+                            throw new Error(data.error || 'Failed to save recipe');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        // Revert UI changes on error
+                        this.classList.remove('d-none');
+                        unsaveBtn.classList.add('d-none');
+                        showToast('Error saving recipe. Please try again.', 'danger');
+                    });
+                });
+            });
+            
+            // Handle unsave recipe buttons
+            document.querySelectorAll('.unsave-recipe-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const recipeId = this.getAttribute('data-recipe-id');
+                    const saveBtn = document.querySelector(`.save-recipe-btn[data-recipe-id="${recipeId}"]`);
+                    
+                    // Optimistically update UI
+                    this.classList.add('d-none');
+                    saveBtn.classList.remove('d-none');
+                    
+                    // Send AJAX request
+                    fetch(`/recipe/${recipeId}/save`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-Token': '{{ csrf_token() }}'
+                        }
+
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            showToast('Recipe removed from saved recipes');
+                        } else {
+                            throw new Error(data.error || 'Failed to unsave recipe');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        // Revert UI changes on error
+                        this.classList.remove('d-none');
+                        saveBtn.classList.add('d-none');
+                        showToast('Error removing saved recipe. Please try again.', 'danger');
+                    });
+                });
+            });
+            
+            // Function to show recipe details
+            function showRecipeDetails(recipeId) {
+                // Show modal with loader
+                const modal = new bootstrap.Modal(document.getElementById('recipeDetailsModal'));
+                modal.show();
+                
+                // Reset and show loader
+                document.getElementById('recipeDetailsLoader').style.display = 'block';
+                document.getElementById('recipeDetailsContent').style.display = 'none';
+                
+                // Fetch recipe details
+                fetch(`/recipe/${recipeId}/data`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-Token': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load recipe details');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        populateRecipeModal(data.recipe, recipeId);
+                    } else {
+                        throw new Error(data.error || 'Failed to load recipe details');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('recipeDetailsLoader').innerHTML = `
+                        <div class="alert alert-danger" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            Error loading recipe details. Please try again.
+                        </div>
+                    `;
+                });
+            }
+            
+            // Function to populate recipe modal with data
+            function populateRecipeModal(recipe, recipeId) {
+                // Hide loader and show content
+                document.getElementById('recipeDetailsLoader').style.display = 'none';
+                document.getElementById('recipeDetailsContent').style.display = 'block';
+                
+                // Set image
+                const recipeImage = document.getElementById('recipeImage');
+                if (recipe.photo_path) {
+                    recipeImage.src = `/static/${recipe.photo_path}`;
+                } else {
+                    recipeImage.src = '/static/images/default-recipe.jpg';
+                }
+                
+                // Set title and badges
+                document.getElementById('recipeTitle').textContent = recipe.title;
+                
+                // Set badges
+                let badgeHTML = '';
+                if (recipe.cuisine_type) {
+                    let badgeClass = 'bg-secondary';
+                    if (recipe.cuisine_type === 'International') badgeClass = 'bg-success';
+                    else if (recipe.cuisine_type === 'Luzon') badgeClass = 'bg-primary';
+                    else if (recipe.cuisine_type === 'Visayas') badgeClass = 'bg-danger';
+                    else if (recipe.cuisine_type === 'Mindanao') badgeClass = 'bg-warning text-dark';
+                    
+                    badgeHTML += `<span class="badge ${badgeClass} me-2"><i class="fas fa-utensils me-1"></i> ${recipe.cuisine_type}</span>`;
+                }
+                document.getElementById('recipeBadges').innerHTML = badgeHTML;
+                
+                // Set author info
+                const authorImage = document.getElementById('authorImage');
+                if (recipe.author_pic) {
+                    authorImage.src = `/static/${recipe.author_pic}`;
+                } else {
+                    authorImage.src = '/static/images/default-avatar.svg';
+                }
+                document.getElementById('authorName').textContent = recipe.author_name;
+                document.getElementById('recipeDate').textContent = recipe.relative_time || 'Recently added';
+                
+                // Set description
+                document.getElementById('recipeDescription').textContent = recipe.description || 'No description provided.';
+                
+                // Set metadata
+                document.getElementById('recipePrepTime').textContent = recipe.prep_time ? `${recipe.prep_time + (recipe.cook_time || 0)} min` : 'N/A';
+                document.getElementById('recipeCalories').textContent = recipe.calories ? `${recipe.calories} cal` : 'N/A';
+                document.getElementById('recipeCuisine').textContent = recipe.cuisine_type || 'Other';
+                document.getElementById('recipeServings').textContent = recipe.servings || 'N/A';
+                
+                // Set ingredients
+                const ingredientsList = document.getElementById('recipeIngredients');
+                ingredientsList.innerHTML = '';
+                
+                if (recipe.ingredients && recipe.ingredients.length > 0) {
+                    recipe.ingredients.forEach(ingredient => {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item border-0';
+                        li.innerHTML = `<i class="fas fa-circle text-success me-2"></i> ${ingredient}`;
+                        ingredientsList.appendChild(li);
+                    });
+                } else {
+                    ingredientsList.innerHTML = '<li class="list-group-item border-0 text-muted">No ingredients listed</li>';
+                }
+                
+                // Set instructions
+                const instructionsList = document.getElementById('recipeInstructions');
+                instructionsList.innerHTML = '';
+                
+                if (recipe.instructions && recipe.instructions.length > 0) {
+                    recipe.instructions.forEach((instruction, index) => {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item border-0';
+                        li.textContent = instruction;
+                        instructionsList.appendChild(li);
+                    });
+                } else {
+                    instructionsList.innerHTML = '<li class="list-group-item border-0 text-muted">No instructions listed</li>';
+                }
+            }
+            
+            // Add event listeners to all view recipe buttons
+            document.querySelectorAll('.view-recipe-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const recipeId = this.getAttribute('data-recipe-id');
+                    showRecipeDetails(recipeId);
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

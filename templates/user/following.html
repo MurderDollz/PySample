@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Following | Recipe Blog</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Poppins', sans-serif;
+        }
+        .profile-img {
+            height: 100px;
+            width: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .user-card {
+            transition: transform 0.3s ease;
+        }
+        .user-card:hover {
+            transform: translateY(-5px);
+        }
+        .bio-text {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="{{ url_for('user_dashboard') }}">Recipe Blog</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('user_dashboard') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('discover') }}">Discover</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('saved_recipes') }}">Saved</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('following') }}">Following</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="position-relative me-3">
+                        <input type="text" class="form-control rounded-pill" placeholder="Search users...">
+                    </div>
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            {% if current_user and current_user.profile_pic %}
+                            <img src="{{ url_for('static', filename=current_user.profile_pic) }}" class="rounded-circle" width="32" height="32" alt="Profile">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='img/default-avatar.png') }}" class="rounded-circle" width="32" height="32" alt="Profile">
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                            <li><a class="dropdown-item" href="{{ url_for('user_profile') }}">Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('user_settings') }}">Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <h1 class="mb-4">Following</h1>
+        
+        <!-- Following Section -->
+        <div class="mb-5">
+            <h5 class="mb-3">People You Follow</h5>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% if followed_users %}
+                    {% for user in followed_users %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm user-card">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    {% if user.profile_pic %}
+                                    <img src="{{ url_for('static', filename=user.profile_pic) }}" class="profile-img mb-2" alt="{{ user.first_name }}">
+                                    {% else %}
+                                    <img src="{{ url_for('static', filename='img/default-avatar.png') }}" class="profile-img mb-2" alt="User">
+                                    {% endif %}
+                                    <h5 class="card-title mb-0">{{ user.first_name }} {{ user.last_name }}</h5>
+                                    <p class="text-muted small">{{ user.followers_count }} Followers • {{ user.recipe_count }} Recipes</p>
+                                </div>
+                                {% if user.bio %}
+                                <p class="card-text small text-muted bio-text mb-3">{{ user.bio }}</p>
+                                {% else %}
+                                <p class="card-text small text-muted bio-text mb-3">This user hasn't added a bio yet.</p>
+                                {% endif %}
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-sm btn-outline-primary view-profile-btn" data-user-id="{{ user.id }}" data-bs-toggle="modal" data-bs-target="#userProfileModal">View Profile</button>
+                                    <button class="btn btn-sm btn-secondary unfollow-button" data-user-id="{{ user.id }}">
+                                        Unfollow
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h5>You're not following anyone yet</h5>
+                        <p class="text-muted">When you follow people, they will appear here</p>
+                        <a href="{{ url_for('discover') }}" class="btn btn-primary mt-2">Discover Users</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Suggested Users -->
+        <div class="mb-5">
+            <h5 class="mb-3">Suggested for You</h5>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% if suggested_users %}
+                    {% for user in suggested_users %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm user-card">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    {% if user.profile_pic %}
+                                    <img src="{{ url_for('static', filename=user.profile_pic) }}" class="profile-img mb-2" alt="{{ user.first_name }}">
+                                    {% else %}
+                                    <img src="{{ url_for('static', filename='img/default-avatar.png') }}" class="profile-img mb-2" alt="User">
+                                    {% endif %}
+                                    <h5 class="card-title mb-0">{{ user.first_name }} {{ user.last_name }}</h5>
+                                    <p class="text-muted small">{{ user.followers_count }} Followers • {{ user.recipe_count }} Recipes</p>
+                                </div>
+                                {% if user.bio %}
+                                <p class="card-text small text-muted bio-text mb-3">{{ user.bio }}</p>
+                                {% else %}
+                                <p class="card-text small text-muted bio-text mb-3">This user hasn't added a bio yet.</p>
+                                {% endif %}
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-sm btn-outline-primary view-profile-btn" data-user-id="{{ user.id }}" data-bs-toggle="modal" data-bs-target="#userProfileModal">View Profile</button>
+                                    <button class="btn btn-sm btn-primary follow-button" data-user-id="{{ user.id }}">
+                                        Follow
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12 text-center py-4">
+                        <p class="text-muted">No suggested users available</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div class="modal fade" id="userProfileModal" tabindex="-1" aria-labelledby="userProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userProfileModalLabel">User Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center position-relative mb-4">
+                        <div class="bg-light rounded-3 py-5 mb-n5"></div>
+                        <div class="position-relative pt-4">
+                            <img id="modalUserProfilePic" src="{{ url_for('static', filename='img/default-avatar.png') }}" class="profile-img border border-4 border-white" style="margin-top: -50px; height: 120px; width: 120px;">
+                            <h3 id="modalUserName" class="mt-2 mb-0">Loading...</h3>
+                            <p id="modalUserFollowers" class="text-muted small">Loading...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h6 class="card-title"><i class="fas fa-user-circle me-2"></i>Bio</h6>
+                                    <p id="modalUserBio" class="card-text text-muted small">Loading...</p>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title"><i class="fas fa-info-circle me-2"></i>Details</h6>
+                                    <ul class="list-unstyled text-muted small">
+                                        <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i><span id="modalUserLocation">Loading...</span></li>
+                                        <li class="mb-2"><i class="fas fa-envelope me-2"></i><span id="modalUserEmail">Loading...</span></li>
+                                        <li><i class="fas fa-calendar me-2"></i>Joined <span id="modalUserJoined">Loading...</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title"><i class="fas fa-utensils me-2"></i>Popular Recipes</h6>
+                                    <div id="modalUserRecipes">
+                                        <p class="text-muted small text-center py-4">Loading recipes...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button id="modalFollowBtn" type="button" class="btn btn-primary">Follow</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript for Follow/Unfollow functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle follow button clicks
+            const followButtons = document.querySelectorAll('.follow-button');
+            followButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-user-id');
+                    followUser(userId, this);
+                });
+            });
+            
+            // Handle unfollow button clicks
+            const unfollowButtons = document.querySelectorAll('.unfollow-button');
+            unfollowButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-user-id');
+                    unfollowUser(userId, this);
+                });
+            });
+            
+            // Handle view profile button clicks
+            const viewProfileButtons = document.querySelectorAll('.view-profile-btn');
+            viewProfileButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-user-id');
+                    loadUserProfile(userId);
+                });
+            });
+            
+            // Modal follow button
+            const modalFollowBtn = document.getElementById('modalFollowBtn');
+            modalFollowBtn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const isFollowing = this.getAttribute('data-is-following') === 'true';
+                
+                if (isFollowing) {
+                    unfollowUser(userId, this, true);
+                } else {
+                    followUser(userId, this, true);
+                }
+            });
+            
+            // Function to load user profile data
+            function loadUserProfile(userId) {
+                // Reset modal content to loading state
+                document.getElementById('modalUserName').textContent = 'Loading...';
+                document.getElementById('modalUserFollowers').textContent = 'Loading...';
+                document.getElementById('modalUserBio').textContent = 'Loading...';
+                document.getElementById('modalUserLocation').textContent = 'Loading...';
+                document.getElementById('modalUserEmail').textContent = 'Loading...';
+                document.getElementById('modalUserJoined').textContent = 'Loading...';
+                document.getElementById('modalUserRecipes').innerHTML = '<p class="text-muted small text-center py-4">Loading recipes...</p>';
+                
+                // Fetch user profile data
+                fetch(`/user/${userId}/profile`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const user = data.user;
+                        
+                        // Update modal content with user data
+                        document.getElementById('modalUserName').textContent = `${user.first_name} ${user.last_name}`;
+                        document.getElementById('modalUserFollowers').textContent = `${user.followers_count} Followers • ${user.recipe_count} Recipes`;
+                        
+                        // Update profile picture
+                        if (user.profile_pic) {
+                            document.getElementById('modalUserProfilePic').src = `/static/${user.profile_pic}`;
+                        } else {
+                            document.getElementById('modalUserProfilePic').src = "/static/img/default-avatar.png";
+                        }
+                        
+                        // Update bio
+                        document.getElementById('modalUserBio').textContent = user.bio || 'This user hasn\'t added a bio yet.';
+                        
+                        // Update details
+                        document.getElementById('modalUserLocation').textContent = user.location || 'Not specified';
+                        document.getElementById('modalUserEmail').textContent = user.email || 'Not available';
+                        
+                        // Format joined date
+                        const joinedDate = new Date(user.created_at);
+                        const formattedDate = joinedDate.toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        });
+                        document.getElementById('modalUserJoined').textContent = formattedDate;
+                        
+                        // Update follow button
+                        const modalFollowBtn = document.getElementById('modalFollowBtn');
+                        modalFollowBtn.setAttribute('data-user-id', userId);
+                        modalFollowBtn.setAttribute('data-is-following', user.is_following);
+                        
+                        if (user.is_following) {
+                            modalFollowBtn.textContent = 'Unfollow';
+                            modalFollowBtn.classList.remove('btn-primary');
+                            modalFollowBtn.classList.add('btn-secondary');
+                        } else {
+                            modalFollowBtn.textContent = 'Follow';
+                            modalFollowBtn.classList.remove('btn-secondary');
+                            modalFollowBtn.classList.add('btn-primary');
+                        }
+                        
+                        // Display user's recipes
+                        if (user.recipes && user.recipes.length > 0) {
+                            let recipesHtml = '<div class="list-group list-group-flush">';
+                            
+                            user.recipes.forEach(recipe => {
+                                recipesHtml += `
+                                    <a href="/recipe/${recipe.id}" class="list-group-item list-group-item-action">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                ${recipe.photo_path ? 
+                                                    `<img src="/static/${recipe.photo_path}" class="rounded" width="40" height="40" style="object-fit: cover;" alt="${recipe.title}">` :
+                                                    `<div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="fas fa-utensils text-muted"></i></div>`
+                                                }
+                                            </div>
+                                            <div class="ms-3">
+                                                <h6 class="mb-0">${recipe.title}</h6>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-heart"></i> ${recipe.likes_count || 0}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </a>
+                                `;
+                            });
+                            
+                            recipesHtml += '</div>';
+                            document.getElementById('modalUserRecipes').innerHTML = recipesHtml;
+                        } else {
+                            document.getElementById('modalUserRecipes').innerHTML = '<p class="text-muted small text-center py-4">No recipes yet</p>';
+                        }
+                    } else {
+                        // Handle error
+                        document.getElementById('modalUserName').textContent = 'Error loading profile';
+                        document.getElementById('modalUserBio').textContent = 'Could not load user data. Please try again.';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('modalUserName').textContent = 'Error loading profile';
+                    document.getElementById('modalUserBio').textContent = 'Could not load user data. Please try again.';
+                });
+            }
+            
+            // Function to follow a user
+            function followUser(userId, buttonElement, isModal = false) {
+                fetch(`/user/${userId}/follow`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (isModal) {
+                            // Update modal button
+                            buttonElement.textContent = 'Unfollow';
+                            buttonElement.classList.remove('btn-primary');
+                            buttonElement.classList.add('btn-secondary');
+                            buttonElement.setAttribute('data-is-following', 'true');
+                            
+                            // Update followers count
+                            const followersText = document.getElementById('modalUserFollowers').textContent;
+                            const parts = followersText.split(' Followers');
+                            const currentCount = parseInt(parts[0]);
+                            document.getElementById('modalUserFollowers').textContent = 
+                                `${currentCount + 1} Followers${parts[1]}`;
+                        } else {
+                            // Refresh the page to show updated following list
+                            window.location.reload();
+                        }
+                    } else {
+                        alert('Error following user: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error following user. Please try again.');
+                });
+            }
+            
+            // Function to unfollow a user
+            function unfollowUser(userId, buttonElement, isModal = false) {
+                fetch(`/user/${userId}/follow`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (isModal) {
+                            // Update modal button
+                            buttonElement.textContent = 'Follow';
+                            buttonElement.classList.remove('btn-secondary');
+                            buttonElement.classList.add('btn-primary');
+                            buttonElement.setAttribute('data-is-following', 'false');
+                            
+                            // Update followers count
+                            const followersText = document.getElementById('modalUserFollowers').textContent;
+                            const parts = followersText.split(' Followers');
+                            const currentCount = parseInt(parts[0]);
+                            document.getElementById('modalUserFollowers').textContent = 
+                                `${Math.max(0, currentCount - 1)} Followers${parts[1]}`;
+                        } else {
+                            // Find the user card containing this button and remove it
+                            let userCard = buttonElement.closest('.col');
+                            if (userCard) {
+                                // Add a fade out effect
+                                userCard.style.transition = 'opacity 0.5s';
+                                userCard.style.opacity = '0';
+                                
+                                // After animation, reload the page
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 500);
+                            } else {
+                                // If card not found just reload
+                                window.location.reload();
+                            }
+                        }
+                    } else {
+                        alert('Error unfollowing user: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error unfollowing user. Please try again.');
+                });
+            }
+        });
+    </script>
+</body>
+</html> 

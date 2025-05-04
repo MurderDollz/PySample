@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{{ title }} - Recipe Blog Admin</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fc;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Admin sidebar styles */
+        .sidebar-admin {
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            z-index: 999;
+            min-height: 100vh;
+            overflow-y: hidden;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+        }
+        
+        .sidebar-content {
+            height: 100%;
+            overflow-y: auto;
+        }
+        
+        .sidebar-brand {
+            padding: 20px;
+            text-align: center;
+            background-color: #2c3e50;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-brand h2 {
+            color: white;
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        
+        .sidebar-brand span {
+            color: #e67e22;
+            font-weight: 700;
+        }
+        
+        .admin-profile {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .avatar-container {
+            display: inline-block;
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .avatar-container::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background-color: #2ecc71;
+            border-radius: 50%;
+            border: 2px solid #34495e;
+            bottom: 5px;
+            right: 5px;
+        }
+        
+        .admin-username {
+            margin-bottom: 5px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .nav-link.active {
+            background-color: #007bff;
+            color: white !important;
+            font-weight: 500;
+        }
+        
+        .nav-link.hover-white:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white !important;
+        }
+        
+        .admin-content {
+            flex: 1;
+            padding: 20px;
+            overflow-x: hidden;
+            margin-left: 250px;
+        }
+        
+        /* Custom scrollbar for the sidebar */
+        .sidebar-content::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        .sidebar-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .sidebar-content::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+        }
+        
+        /* Dashboard cards */
+        .dashboard-card {
+            border-radius: 8px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            border: none;
+            margin-bottom: 24px;
+            transition: transform 0.2s ease;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .border-left-primary {
+            border-left: 0.25rem solid #4e73df !important;
+        }
+        
+        .border-left-success {
+            border-left: 0.25rem solid #1cc88a !important;
+        }
+        
+        .border-left-info {
+            border-left: 0.25rem solid #36b9cc !important;
+        }
+        
+        .border-left-warning {
+            border-left: 0.25rem solid #f6c23e !important;
+        }
+        
+        .text-gray-300 {
+            color: #dddfeb !important;
+        }
+        
+        .text-gray-800 {
+            color: #5a5c69 !important;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Admin Sidebar -->
+        <div class="sidebar-admin">
+            <div class="sidebar-content">
+                <!-- Sidebar Brand -->
+                <div class="sidebar-brand">
+                    <h2>Recipe<span>Blog</span></h2>
+                </div>
+                
+                <!-- Admin Profile Section -->
+                <div class="admin-profile">
+                    <div class="avatar-container">
+                        <i class="fas fa-user-circle fa-4x text-white"></i>
+                    </div>
+                    <h5 class="admin-username">{{ session.username }}</h5>
+                    <span class="badge bg-success rounded-pill px-3 py-1">Administrator</span>
+                </div>
+                
+                <!-- Admin Menu -->
+                <div class="p-3">
+                    <h6 class="text-uppercase text-muted small fw-bold ms-3 mb-3">Main Navigation</h6>
+                    <ul class="nav flex-column sidebar-menu-admin mb-4">
+                        <li class="nav-item mb-1">
+                            <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% else %}text-white-50 hover-white{% endif %} rounded py-2 px-3">
+                                <i class="fas fa-tachometer-alt fa-fw me-2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item mb-1">
+                            <a href="{{ url_for('admin_manage_users') }}" class="nav-link {% if request.endpoint == 'admin_manage_users' %}active{% else %}text-white-50 hover-white{% endif %} rounded py-2 px-3">
+                                <i class="fas fa-users fa-fw me-2"></i>
+                                Manage Users
+                            </a>
+                        </li>
+                        <li class="nav-item mb-1">
+                            <a href="{{ url_for('admin_manage_recipes') }}" class="nav-link {% if request.endpoint == 'admin_manage_recipes' %}active{% else %}text-white-50 hover-white{% endif %} rounded py-2 px-3">
+                                <i class="fas fa-utensils fa-fw me-2"></i>
+                                Manage Recipes
+                            </a>
+                        </li>
+                        <li class="nav-item mb-1">
+                            <a href="{{ url_for('admin_categories') }}" class="nav-link {% if request.endpoint == 'admin_categories' %}active{% else %}text-white-50 hover-white{% endif %} rounded py-2 px-3">
+                                <i class="fas fa-globe-americas fa-fw me-2"></i>
+                                Categories
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <h6 class="text-uppercase text-muted small fw-bold ms-3 mb-3">Administration</h6>
+                    <ul class="nav flex-column sidebar-menu-admin mb-4">
+                        <li class="nav-item mb-1">
+                            <a href="{{ url_for('admin_analytics') }}" class="nav-link {% if request.endpoint == 'admin_analytics' %}active{% else %}text-white-50 hover-white{% endif %} rounded py-2 px-3">
+                                <i class="fas fa-chart-bar fa-fw me-2"></i>
+                                Analytics
+                            </a>
+                        </li>
+                        <li class="nav-item mb-1">
+                            <a href="{{ url_for('admin_settings') }}" class="nav-link {% if request.endpoint == 'admin_settings' %}active{% else %}text-white-50 hover-white{% endif %} rounded py-2 px-3">
+                                <i class="fas fa-cog fa-fw me-2"></i>
+                                Settings
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="border-top border-secondary pt-3 mt-4">
+                        <a href="{{ url_for('logout') }}" class="btn btn-danger w-100 rounded-pill">
+                            <i class="fas fa-sign-out-alt me-2"></i>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="admin-content">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <!-- Page Content -->
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Custom Scripts -->
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="container py-5">
+        <div class="row mb-5">
+            <div class="col-md-8 mx-auto text-center" data-aos="fade-up">
+                <h1 class="display-4 mb-4">Contact Us</h1>
+                <p class="lead">We'd love to hear from you! Get in touch with any questions, suggestions, or feedback.</p>
+            </div>
+        </div>
+        
+        <!-- Contact Info Cards -->
+        <div class="row mb-5 justify-content-center" data-aos="fade-up">
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card border-0 shadow-sm h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="contact-icon rounded-circle bg-primary text-white d-inline-flex justify-content-center align-items-center mb-4" style="width: 80px; height: 80px;">
+                            <i class="fas fa-map-marker-alt fa-2x"></i>
+                        </div>
+                        <h4>Our Location</h4>
+                        <p class="text-muted mb-0">123 Recipe Street, Food City, FC 12345</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card border-0 shadow-sm h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="contact-icon rounded-circle bg-primary text-white d-inline-flex justify-content-center align-items-center mb-4" style="width: 80px; height: 80px;">
+                            <i class="fas fa-phone fa-2x"></i>
+                        </div>
+                        <h4>Phone Number</h4>
+                        <p class="text-muted mb-0">+1 (123) 456-7890</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card border-0 shadow-sm h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="contact-icon rounded-circle bg-primary text-white d-inline-flex justify-content-center align-items-center mb-4" style="width: 80px; height: 80px;">
+                            <i class="fas fa-envelope fa-2x"></i>
+                        </div>
+                        <h4>Email Address</h4>
+                        <p class="text-muted mb-0">contact@recipeblog.com</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-body p-5">
+                        <div class="mb-4">
+                            <h3>Contact Form</h3>
+                            <p class="text-muted">We'll get back to you as soon as possible.</p>
+                        </div>
+                        <form>
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Your Name</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0"><i class="fas fa-user text-primary"></i></span>
+                                    <input type="text" class="form-control border-0 bg-light" id="name" placeholder="John Doe">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0"><i class="fas fa-envelope text-primary"></i></span>
+                                    <input type="email" class="form-control border-0 bg-light" id="email" placeholder="johndoe@example.com">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="subject" class="form-label">Subject</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0"><i class="fas fa-tag text-primary"></i></span>
+                                    <input type="text" class="form-control border-0 bg-light" id="subject" placeholder="Question about recipes">
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="message" class="form-label">Message</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0"><i class="fas fa-comment-alt text-primary"></i></span>
+                                    <textarea class="form-control border-0 bg-light" id="message" rows="5" placeholder="Your message here..."></textarea>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-paper-plane me-2"></i>Send Message
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %} 
